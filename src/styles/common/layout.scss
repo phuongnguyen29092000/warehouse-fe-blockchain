@@ -1,0 +1,41 @@
+//scrollbar
+::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+  }
+   
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888; 
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+  }
+
+.layout-app{
+    display: flex;
+    .component{
+        width: calc(100vw - 120px);
+        max-width: calc(100vw - 120px);
+        overflow: hidden;
+        overflow: hidden;
+        max-height: 100vh;
+    }
+    .list-manager, .manage-statistic-wrapper {
+        overflow-y: auto;
+        max-width: 100%;
+        max-height: calc(100vh - 80px);
+    }
+}
+.layout-user-app{
+    
+}
+.active-user{
+    color: #faffaf !important;
+}

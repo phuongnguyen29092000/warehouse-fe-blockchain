@@ -1,0 +1,35 @@
+@import './pages/Homepage.scss';
+@import './pages/ProductDetail.scss';
+@import './common/layout.scss';
+
+@font-face {
+	font-family: "HKGroteskPro-Regular";
+	src: url("../assets/fonts/HKGroteskPro-Regular.woff2");
+	font-weight: bold
+}
+body {
+    margin: 0;
+    -moz-osx-font-smoothing: grayscale;
+    *{
+      font-family: 'Nunito Sans', sans-serif !important;
+    }
+  }
+.alert{
+  font-size: 12px;
+  color: red;
+}
+.icon-bar{
+  svg{
+    color: #fff !important;
+  }
+}
+.rnc__notification-title, .rnc__notification-message {
+  text-align: left;
+}
+
+.slick-prev::before{
+  content: "" !important;
+}
+.slick-prev:before, .slick-next:before{
+  opacity: 0 !important;
+}
