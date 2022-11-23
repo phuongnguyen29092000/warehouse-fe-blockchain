@@ -13,6 +13,13 @@ const getAllProduct = (queriesData) => {
   // skip, limit, min, max, cate, s, discount = true false
 };
 
+const getAllProductPerCompany = (id, queriesData) => {
+  console.log({queriesData});
+  const url = `/product/company/${id}?skip=${queriesData.skip}&limit=${queriesData.limit}&min=${queriesData?.min}&max=${queriesData?.max}&cate=${queriesData.categoryId}&subcate=${queriesData.subCategoryId}&dis=${queriesData.isDiscount}&s=${queriesData.s}`;
+  return axiosClient.get(url);
+  // skip, limit, min, max, cate, s, discount = true false
+};
+
 const getProductById = (id) => {
   const url = `/product/${id}`;
   return axiosClient.get(url);
@@ -34,4 +41,5 @@ export default {
   getProductById,
   updateProduct,
   deleteProduct,
+  getAllProductPerCompany
 };

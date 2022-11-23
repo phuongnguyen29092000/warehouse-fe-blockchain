@@ -28,6 +28,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import CartDrawer from 'components/Cart/CartDrawer';
 import {DEFAULT_PARAMS} from '../../utils/constant'
 import ProductCard from 'components/Cards/ProductCard';
+import { Link, useNavigate } from "react-router-dom";
 
 const useStyles = makeStyles({
     avatar: {
@@ -105,6 +106,7 @@ function ProductDetail() {
     const [isShowBookTourModal, setIsShowBookTourModal] = React.useState(false)
     const [count, setCount] = useState(0);
     const [openDrawerCart, setOpenDrawerCart] = useState(false)
+    const navigate = useNavigate()
     // const [similarProducts, setSimilarProducts] = useState([])
 
     const handleOnClick = () => {
@@ -156,13 +158,18 @@ function ProductDetail() {
         onChange(countNext);
         setCount(countNext);
     }
-    const hanldeAddToCart = (id) => {
+    const hanldeAddToCart = (detail) => {
         setOpenDrawerCart(true)
         if(count < data?.minimumQuantity) return 
         const products = (JSON.parse(localStorage.getItem('products')))?.length 
         ? JSON.parse(localStorage.getItem('products')) : [];
-        if(!products.every((item)=> !item.id.includes(id))) return
-        localStorage.setItem('products', JSON.stringify([...products, { id: id, name: data.productName, count: count}]));
+        if(!products.every((item)=> !item.id.includes(detail._id))) return
+        localStorage.setItem('products', JSON.stringify([...products, {...detail, count: count}]));
+    }
+
+    const handlePayment = (data) => {
+        hanldeAddToCart(data)
+        navigate('/gio-hang')
     }
 
     const settings = {
@@ -273,7 +280,7 @@ function ProductDetail() {
                                         <Typography gutterBottom variant="button" component="div" align='left'>
                                             <Button variant="contained" color="warning" sx={{marginRight: 1, height: 50}}
                                                 // disabled={!getUser() || !data?.owner?.active || moment(data.timeStart).subtract(5, 'days').toDate().getTime() <  Date.now()}
-                                                onClick={() => hanldeAddToCart(data?._id)}
+                                                onClick={() => hanldeAddToCart(data)}
                                                 >
                                                 <div style={{display: 'flex', alignItems: 'center', paddingRight: 10, marginRight: 10, borderRight: '2px solid #fff'}}>
                                                     <ShoppingCartIcon />
@@ -284,7 +291,7 @@ function ProductDetail() {
                                         <Typography gutterBottom variant="button" component="div" align='left'>
                                             <Button variant="outlined" color="warning"
                                                 // disabled={!getUser() || !data?.owner?.active || moment(data.timeStart).subtract(5, 'days').toDate().getTime() <  Date.now()}
-                                                onClick={() => handleOnClick()} sx={{height: 50}}>
+                                                onClick={() => handlePayment(data)} sx={{height: 50}}>
                                                 <div style={{display: 'flex', alignItems: 'center', paddingRight: 10, marginRight: 10, borderRight: '2px solid orange'}}>
                                                     <PaymentIcon />
                                                 </div>
@@ -330,6 +337,7 @@ function ProductDetail() {
                                                         manufacturer={product.manufacturer.companyName}
                                                         discount={product?.discount}
                                                         setOpenDrawerCart={setOpenDrawerCart}
+                                                        dataDetail={product}
                                                 />
                                                 ))
                                             }

@@ -3,24 +3,49 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Button, Divider, Grid } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import PriceDiscount from "LogicResolve/PriceDiscount";
+import ConvertToImageURL from "LogicResolve/ConvertToImageURL";
 
 const CartDrawer = ({ onClose }) => {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0)
+
   useEffect(() => {
     const productsStore = JSON.parse(localStorage.getItem("products"));
     if (!productsStore?.length) return;
     setData(productsStore);
   }, []);
 
+  useEffect(()=> {
+    if(!data?.length) return
+    const totalPrice = data.reduce((total, value) => {
+        const {count, price, discount} = value
+        return total + count*price*(1 - discount)
+    }, 0)
+    setTotalPrice(totalPrice)
+  }, [data])
+
   const handleRemoveProduct = (id) => {
     const products = JSON.parse(localStorage.getItem("products")).filter(
-      (item) => item.id !== id
+      (item) => item._id !== id
     );
     if (!products?.length) onClose();
     setData([...products]);
     localStorage.setItem("products", JSON.stringify(products));
   };
+
+  const hanleChangeCount = (value, product) => {
+    const newCount = Number(value)
+    if(newCount < product.minimumQuantity) return
+    const {_id} = product
+    const products = JSON.parse(localStorage.getItem('products'))
+    const newCarts = products.map((product)=> {
+        if(_id === product._id) return { ...product, count: newCount}
+        return product
+    })
+    localStorage.setItem('products', JSON.stringify(newCarts));
+    setData(newCarts)
+  }
 
   return (
     <div
@@ -50,9 +75,7 @@ const CartDrawer = ({ onClose }) => {
                 <Grid container spacing={2}>
                   <Grid item xs={3}>
                     <img
-                      src={
-                        "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/640px-Image_created_with_a_mobile_phone.png"
-                      }
+                      src={ConvertToImageURL(item.imageUrl)}
                       style={{ width: 60, height: 60, marginLeft: 16 }}
                       alt=""
                     />
@@ -64,7 +87,7 @@ const CartDrawer = ({ onClose }) => {
                       style={{ marginBottom: 6, cursor: "pointer" }}
                       onClick={() => navigate(`/chi-tiet-san-pham/${item.id}`)}
                     >
-                      <span>{item.name}</span>
+                      <span>{item.productName}</span>
                     </Grid>
                     <Grid
                       item
@@ -80,11 +103,18 @@ const CartDrawer = ({ onClose }) => {
                         type="number"
                         value={parseInt(item.count)}
                         style={{ width: 50, outline: "none", height: 20}}
+                        onChange={(e)=> hanleChangeCount(e.target.value, item)}
+                        onKeyDown={(e)=> {
+                          if(e.key === "Backspace") {
+                              const key = e.target.value.slice(0,-1)
+                              hanleChangeCount(key, item)
+                          }
+                        }}
                       ></input>
                       <DeleteIcon
                         htmlColor="#ff8000"
                         sx={{ cursor: "pointer" }}
-                        onClick={() => handleRemoveProduct(item.id)}
+                        onClick={() => handleRemoveProduct(item._id)}
                       />
                     </Grid>
                   </Grid>
@@ -97,10 +127,10 @@ const CartDrawer = ({ onClose }) => {
       </div>
       <div style={{display: 'flex',padding: '15px', justifyContent: 'end', alignItems: 'center'}}>
         <div>
-          <PriceDiscount valueDiscount={0} valuePrice={12000000} />
+          <PriceDiscount valueDiscount={0} valuePrice={totalPrice} />
         </div>
       </div>
-      <Button variant="contained" color="warning" style={{height: 60}}>Đặt hàng</Button>
+      <Button variant="contained" color="warning" style={{height: 60}} onClick={()=> navigate('/gio-hang')}>Đặt hàng</Button>
     </div>
   );
 };

@@ -9,8 +9,9 @@ const getHeaderWithToken = () => {
 }
 
 const refreshTokenValue = () =>{
+    const token = getAccessToken()
     const refreshToken = getRefreshToken()
-    return { refreshToken : refreshToken}
+    return {accessToken: token,  refreshToken : refreshToken}
 }
 
 export {

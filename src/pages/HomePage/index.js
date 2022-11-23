@@ -30,32 +30,11 @@ function HomePage() {
         {
             loading ? <Spinner/> :
             <div className='home-page-container'>
-                <div style={{
-                    width: '300px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%',
-                    marginRight: 20,
-                    marginTop: 20,
-                    padding: '10px 0px 0px 0px',
-                    backgroundColor: '#fff',
-                    borderRadius: '4px',
-                    borderTop: '20px solid rgb(14, 122, 231)'
-                }}>
+                <div className='block-left'>
                     <FilterProduct queriesData={queriesData} setQueriesData={setQueriesData}/>
                     <Category queriesData={queriesData} setQueriesData={setQueriesData}/>
                 </div>
-                <div style={{
-                    display: 'flex',
-                    marginTop: 20,
-                    flexDirection: 'column',
-                    width: 'calc(100% - 300px)',
-                    height: '100%',
-                    padding: '10px 20px 20px 0px',
-                    backgroundColor: '#fff',
-                    borderRadius: '4px',
-                    borderTop: '20px solid rgb(14, 122, 231)'
-                }}>
+                <div className='block-right'>
                     <ProductResult queriesData={queriesData} setQueriesData={setQueriesData} setOpenDrawerCart={setOpenDrawerCart}/>
                 </div>
             </div>

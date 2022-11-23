@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import userLayout from '../HOCS/userLayout';
-import {ROUTE_HOME, ROUTE_LOGIN, ROUTE_SIGNUP ,ROUTE_PRODUCT_DETAIL} from './type';
+import {ROUTE_HOME, ROUTE_LOGIN, ROUTE_SIGNUP ,ROUTE_PRODUCT_DETAIL, ROUTE_CART} from './type';
 import { useDispatch } from 'react-redux';
 import SignIn from 'containers/SignIn';
 import HomePage from 'pages/HomePage';
 import SignUp from 'containers/SignUp';
 import ProductDetail from 'containers/ProductDetail';
+import CartPage from 'pages/CartPage';
 
 function UserRoutes(props) {
     const navigate = useNavigate()
@@ -45,6 +46,13 @@ function UserRoutes(props) {
                 exact
                 element={userLayout({
                     Component: ProductDetail,
+                })}
+            />
+             <Route
+                path={ROUTE_CART}
+                exact
+                element={userLayout({
+                    Component: CartPage,
                 })}
             />
         </Routes>

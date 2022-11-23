@@ -45,12 +45,7 @@ const FilterProduct = ({ queriesData, setQueriesData }) => {
     >
       <Container>
         <h3
-          style={{
-            margin: 0,
-            marginBottom: "20px",
-            fontWeight: "initial",
-            color: "rgb(204 210 217)",
-          }}
+          className='filter-header'
         >
           Bạn đang tìm kiếm ?
         </h3>

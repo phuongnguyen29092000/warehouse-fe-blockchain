@@ -15,11 +15,6 @@ export const getAccessToken = () => {
   return token && `${Cookies.get('token')}`
 }
 
-// export const getOrganization = () => {
-//   const token = Cookies.get('organization')
-//   return token && `${Cookies.get('organization')}`
-// }
-
 export const getRefreshToken = () => {
   const token = Cookies.get('refresh_token')
   return token && `${Cookies.get('refresh_token')}`

@@ -12,6 +12,9 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { makeStyles } from "@mui/styles";
+import { login } from '../../redux/reducers/user/action'
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 function Copyright(props) {
   return (
@@ -41,17 +44,19 @@ const useStyles = makeStyles((theme) => ({
     backgroundPosition: "center",
   },
 }));
-const handleSubmit = (event) => {
-  event.preventDefault();
-  const data = new FormData(event.currentTarget);
-  console.log({
-    email: data.get("email"),
-    password: data.get("password"),
-  });
-};
 
 export default function SignIn() {
   const classes = useStyles();
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    dispatch(login(data, (res)=> {
+      if(res) navigate('/')
+    }))
+  };
 
   return (
     <Container component="main" maxWidth="xs">

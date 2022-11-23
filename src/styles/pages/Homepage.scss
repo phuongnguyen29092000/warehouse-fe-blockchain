@@ -6,6 +6,37 @@
     height: auto;
     display: flex;
     justify-content: center;
+    .block-left {
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        margin-right: 20px;
+        margin-top: 20px;
+        padding: 10px 0px 0px 0px;
+        background-color: #fff;
+        border-radius: 4px;
+        border-top: 20px solid rgb(14, 122, 231);
+        .filter-header {
+            margin: 0;
+            margin-bottom: 20px;
+            color: rgb(65 149 247);
+            font-weight: 600;
+            font-family: monospace !important;
+            font-size: 23px;
+        }
+    }
+    .block-right {
+        display: flex;
+        margin-top: 20px;
+        flex-direction: column;
+        width: calc(100% - 300px);
+        height: auto;
+        padding: 10px 20px 20px 0;
+        background-color: #fff;
+        border-radius: 4px;
+        border-top: 20px solid rgb(14, 122, 231);
+    }
 }
 
 @media only screen and (max-width: 1600px) {

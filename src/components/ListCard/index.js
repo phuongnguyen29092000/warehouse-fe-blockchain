@@ -41,6 +41,7 @@ const ListCard = ({ data, queriesData, setQueriesData, setOpenDrawerCart}) => {
                                                     manufacturer={product.manufacturer.companyName}
                                                     discount={product?.discount}
                                                     setOpenDrawerCart={setOpenDrawerCart}
+                                                    dataDetail={product}
                                                 />
                                             </Grid>
                                         ))

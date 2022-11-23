@@ -33,6 +33,7 @@ export default function ProductCard({
   manufacturer,
   discount = 0,
   setOpenDrawerCart,
+  dataDetail
 }) {
   const [shadow, setShadow] = React.useState(false);
   const onMouseOver = () => setShadow(true);
@@ -42,17 +43,18 @@ export default function ProductCard({
     //
   };
 
-  const handleAddToCart = (id) => {
+  const handleAddToCart = (detail) => {
+    console.log(detail);
     setOpenDrawerCart(true);
     const products = JSON.parse(localStorage.getItem("products"))?.length
       ? JSON.parse(localStorage.getItem("products"))
       : [];
-    if (!products.every((item) => !item.id.includes(id))) return;
+    if (!products.every((item) => !item._id.includes(detail._id))) return;
     localStorage.setItem(
       "products",
       JSON.stringify([
         ...products,
-        { id: id, name: productName, count: minimumQuantity },
+        {...detail, count: minimumQuantity},
       ])
     );
   };
@@ -227,7 +229,7 @@ export default function ProductCard({
             disabled={false}
             color="info"
             variant="contained"
-            onClick={() => handleAddToCart(_id)}
+            onClick={() => handleAddToCart(dataDetail)}
           >
             Thêm vào giỏ
           </Button>

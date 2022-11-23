@@ -10,11 +10,17 @@ import ContactMailIcon from "@mui/icons-material/ContactMail";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, IconButton, Menu, MenuItem } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
+import { logout } from "redux/reducers/user/action";
+import { useDispatch, useSelector } from "react-redux";
+import useNotification from "hooks/notification";
 
 const Header = () => {
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const dispatch = useDispatch()
   const navigate = useNavigate()
+  const { account } = useSelector((store) => store.user)
+
 
   const handleChange = (event) => {
     setAuth(event.target.checked);
@@ -67,7 +73,7 @@ const Header = () => {
               </span>
             </Link>
 
-            <Link style={{ textDecoration: "none", width: 90, position: 'relative'}} to={"/abc"}>
+            <Link style={{ textDecoration: "none", width: 90, position: 'relative'}} to={"/gio-hang"}>
               <div style={{ width: "100%", height: 30 }}>
                 <ShoppingCartIcon fontSize="medium" color="action" />
               </div>
@@ -136,8 +142,20 @@ const Header = () => {
               open={Boolean(anchorEl)}
               onClose={handleClose}
             >
-              <MenuItem onClick={handleClose}>My profile</MenuItem>
-              <MenuItem onClick={handleClose}>My account</MenuItem>
+              <MenuItem onClick={handleClose}>Tài khoản</MenuItem>
+              <MenuItem onClick={()=> {
+                if(!Object.keys(account)?.length) {
+                  useNotification.Error({
+                    title: "Cảnh báo!",
+                    message:"Ban chưa đăng nhập!",
+                    duration: 4
+                  })
+                    return
+                }
+                dispatch(logout())
+                handleClose()
+                navigate('/')
+              }}>Đăng xuất</MenuItem>
             </Menu>
           </div>
         </div>
