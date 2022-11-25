@@ -12,6 +12,9 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import { useNavigate } from "react-router-dom";
+import { signup } from "redux/reducers/user/action";
+import { useDispatch } from "react-redux";
 
 const useStyles = makeStyles(theme => ({
   "@global": {
@@ -40,6 +43,24 @@ const useStyles = makeStyles(theme => ({
 
 export default function SignUp() {
   const classes = useStyles();
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const body = {
+      companyName: data.get('companyName'),
+      walletAddress: data.get('walletAddress'),
+      businessCode: data.get('businessCode'),
+      userName: data.get('userName'),
+      email: data.get('email'),
+      password: data.get('password')
+    }
+    dispatch(signup(body, (res)=> {
+      if(res) navigate('/')
+    }))
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -51,7 +72,7 @@ export default function SignUp() {
         <Typography component="h1" variant="h5">
           Đăng kí
         </Typography>
-        <form className={classes.form} noValidate>
+        <form className={classes.form} noValidate onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField

@@ -15,12 +15,19 @@ import ConvertToImageURL from "LogicResolve/ConvertToImageURL";
 import EmptyCart from '../../public/emptyCart.jpg'
 import ShopIcon from '@mui/icons-material/Shop';
 import Tooltip from '@mui/material/Tooltip';
+import { isEmpty } from "lodash";
+import useNotification from "hooks/notification";
+import { useDispatch, useSelector } from "react-redux";
+import {createOrder} from '../../redux/reducers/order/action'
+import CircularProgress from '@mui/material/CircularProgress';
 
 const CartPage = () => {
-  const [auth, setAuth] = React.useState(true);
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState([]);
+  const { account } = useSelector((store)=> store.user)
+  const { newOrder } = useSelector((store)=> store.order)
   const [stateAddress, setStateAddress] = useState({
     cityOptions: [],
     districtOptions: [],
@@ -29,6 +36,12 @@ const CartPage = () => {
     selectedDistrict: null,
     selectedWard: null
   });
+  const [stateOrder, setStateOrder] = useState({
+    ward: '',
+    phoneNumber: '',
+    detailAddress: '',
+    note: ''
+  })
   const [totalPrice, setTotalPrice] = useState(0)
 
   const {cityOptions, districtOptions, wardOptions, selectedCity, selectedDistrict, selectedWard} = stateAddress
@@ -38,11 +51,9 @@ const CartPage = () => {
     const productsStore = JSON.parse(localStorage.getItem("products"));
     if (!productsStore?.length) return;
     setData(productsStore);
-
   },[])
 
   useEffect(() => {
-    if(!data?.length) return
       setLoading(true)
       const fetchProvinces = async() => {
         
@@ -54,7 +65,6 @@ const CartPage = () => {
             selectedCity: data[0]
         }))
     }).then(()=> setLoading(false))
-    
     }
     fetchProvinces()
   }, []);
@@ -119,7 +129,43 @@ const CartPage = () => {
   }
 
   const handlePayment = () => {
-    //
+    if(isEmpty(account)) {
+        return alert("Vui lòng đăng nhập để thanh toán!")
+    }
+    const products = JSON.parse(localStorage.getItem('products'))
+    const details = products.map((product)=> {
+        const {discount, price} = product
+        return {
+            product: product._id,
+            priceDis: price*(1-discount),
+            quantity: product.count
+        }
+    })
+    const data = {
+        order: {
+            walletAddress: 'xxxxxxx',
+            buyer: account._id,
+            seller: products[0].user._id,
+            totalPrice: totalPrice + 15000,
+            totalProduct: products?.length,
+            note: stateOrder.note,
+            phoneNumber: stateOrder.phoneNumber,
+            address: `${stateOrder.detailAddress}, ${stateOrder.ward}, ${stateAddress.selectedDistrict?.label}, ${stateAddress.selectedCity?.label}`
+        },
+        details
+    }
+    dispatch(createOrder(data, (res)=> {
+        if(res) {
+            console.log(res);
+            const detailIds = res.details.map((d)=> d.product)
+            console.log(detailIds);
+            const products = JSON.parse(localStorage.getItem("products")).filter(
+                (item) => !detailIds.includes(item._id)
+            );
+            setData([...products]);
+            localStorage.setItem("products", JSON.stringify(products));
+        }
+    }))
   }
 
   return (
@@ -250,7 +296,8 @@ const CartPage = () => {
                                                 fullWidth
                                                 id="companyName"
                                                 label="Tên doanh nghiệp/công ty"
-                                                autoFocus
+                                                disabled
+                                                value={account?.companyName}
                                                 style={{background: '#fff'}}
                                             />
                                             </Grid>
@@ -348,7 +395,10 @@ const CartPage = () => {
                                                     key={`cityId_${selectedCity?.value}`}
                                                     isDisabled={selectedDistrict?.length === 0}
                                                     options={wardOptions}
-                                                    onChange={(option) => setStateAddress((prev)=> ({...prev, selectedWard: option}))}
+                                                    onChange={(option) => {
+                                                        setStateOrder((prev)=> ({...prev, ward: option.name}))
+                                                        setStateAddress((prev)=> ({...prev, selectedWard: option}))
+                                                    }}
                                                     placeholder="Phường/Xã"
                                                     style={{width: '50%', height: 55}}
                                                     defaultValue={selectedWard?.name}
@@ -392,6 +442,8 @@ const CartPage = () => {
                                                     label="Số đường/Thôn..."
                                                     name="detail"
                                                     autoComplete="detail"
+                                                    value={stateOrder.detailAddress}
+                                                    onChange={(e)=> setStateOrder((prev)=> ({...prev, detailAddress: e.target.value}))}
                                                     style={{background: '#fff'}}
                                                 />
                                             </Grid>
@@ -404,6 +456,8 @@ const CartPage = () => {
                                                     label="Điện thoại liên hệ"
                                                     name="phone"
                                                     autoComplete="phone"
+                                                    value={stateOrder.phoneNumber}
+                                                    onChange={(e)=> setStateOrder((prev)=> ({...prev, phoneNumber: e.target.value}))}
                                                     style={{background: '#fff'}}
                                                 />
                                             </Grid>
@@ -415,7 +469,9 @@ const CartPage = () => {
                                                     id="email"
                                                     label="Địa chỉ Email"
                                                     name="email"
+                                                    disabled
                                                     autoComplete="email"
+                                                    value={account?.email}
                                                     style={{background: '#fff'}}
                                                 />
                                             </Grid>
@@ -425,14 +481,16 @@ const CartPage = () => {
                                                     required
                                                     multiline
                                                     fullWidth
-                                                    id="email"
+                                                    id="note"
                                                     label="Ghi chú đơn hàng"
-                                                    name="email"
-                                                    autoComplete="email"
+                                                    name="note"
+                                                    autoComplete="note"
                                                     placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn."
                                                     rows={4}
                                                     maxRows={10}
                                                     style={{background: '#fff'}}
+                                                    value={stateOrder.note}
+                                                    onChange={(e)=> setStateOrder((prev)=> ({...prev, note: e.target.value}))}
                                                 />
                                             </Grid>
                                         </Grid>
@@ -491,9 +549,11 @@ const CartPage = () => {
                                             </div>
                                         </div>
 
-                                        <Typography gutterBottom variant="button" component="div" align='right' style={{marginLeft: 20}}>
+                                        <Typography gutterBottom variant="button" component="div" align='right' style={{display: 'flex', alignItems: 'center', justifyContent: 'right', marginLeft: 20}}>
+                                            {
+                                                newOrder.loading ? <CircularProgress color="warning" size={30} sx={{marginRight: '10px'}}/> : <></> 
+                                            }
                                             <Button variant="contained" color="warning"
-                                                // disabled={!getUser() || !data?.owner?.active || moment(data.timeStart).subtract(5, 'days').toDate().getTime() <  Date.now()}
                                                 onClick={() => handlePayment()} sx={{height: 50}}
                                                 style={{alignItems: 'center'}}
                                                 >

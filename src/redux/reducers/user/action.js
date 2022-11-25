@@ -1,6 +1,7 @@
 import * as types from './types'
 // import API from '../../../api/UserAPI'
 import AuthAPI from 'apis/AuthAPI'
+import UserAPI from 'apis/UserAPI';
 import { removeAccessToken, removeRefreshToken, removeTimeRefresh, removeUser, setAccessToken, setRefreshToken, setTimeRefresh, setUser } from 'hooks/localAuth'
 import Cookies from "js-cookie";
 import useNotification from '../../../hooks/notification'
@@ -32,7 +33,7 @@ const login = (info, callback = ()=>{}) => {
                       payload: result.data.user
                     })
                 } else {
-                    useNotification.Error({
+                    useNotification.Warning({
                         title: "Vui lòng kiểm tra lại email và mật khẩu",
                         message:"Đăng nhập thất bại!",
                         duration: 3
@@ -41,7 +42,7 @@ const login = (info, callback = ()=>{}) => {
               })
                 .catch((error) =>{
                     console.log(error)
-                    useNotification.Error({
+                    useNotification.Warning({
                         title: "Vui lòng kiểm tra lại email và mật khẩu",
                         message:"Đăng nhập thất bại!",
                         duration: 5
@@ -88,59 +89,76 @@ const logout = (callback = ()=>{}) => {
       // window.location.reload()
 }
 
-// const getAllCustomerBooked = (idOwner, callback = ()=>{}) => {
-//   return async(dispatch) => {
-//       await CheckExpiredToken()
-//       dispatch({type: types.GET_USER_OWNER})
-//       UserAPI.getAllCustomerBooked(idOwner)
-//       // .then((response)=>response.json())
-//       .then((result=>{
-//           if(result.status === 200){
-//               dispatch({
-//                   type: types.GET_USER_OWNER_SUCCESS,
-//                   payload: [...result.data.allCustomerBookedTour]
-//               })
-//               callback()
-//           }else{
-//               dispatch({
-//                   type: types.GET_USER_OWNER_FAIL
-//               })
-//           }
-//       }))
-//       .catch((error)=>{
-//           dispatch({
-//               type: types.GET_USER_OWNER_FAIL
-//           })
-//       })
-//   }
-// }
+const signup = (info, callback = ()=>{}) => {
+  return async(dispatch) => {
+      dispatch({type: types.CREATE_USER})
+      UserAPI.signup(info)
+      .then((result=>{
+          if(result.status === 201){
+            setAccessToken(result.data.tokenAuth.access.token)
+            setRefreshToken(result.data.tokenAuth.refresh.token)
+            setTimeRefresh(result.data.tokenAuth.access.expires)
+            setUser(JSON.stringify(result.data.user))
+            callback(result.data.user)
+            useNotification.Success({
+                title: "Thành công!",
+                message:"Đăng kí thành công!",
+                duration: 4
+            })
+            dispatch({
+                type: types.SET_ACCOUNT_INFO,
+                payload: result.data.user
+              })
+          }else{
+            useNotification.Error({
+                title: "Lỗi!",
+                message:"Đăng kí thất bại!",
+                duration: 4
+            })
+              dispatch({
+                  type: types.CREATE_USER_FAIL
+              })
+          }
+      }))
+      .catch((error)=>{
+        useNotification.Error({
+            title: "Lỗi!",
+            message:"Đăng kí thất bại!",
+            duration: 4
+        })
+          dispatch({
+              type: types.CREATE_USER_FAIL
+          })
+      })
+  }
+}
 
-// const getAllCustomerAdmin= (callback = ()=>{}) => {
-//     return async(dispatch) => {
-//         await CheckExpiredToken()
-//         dispatch({type: types.GET_CUSTOMER_ADMIN})
-//         UserAPI.getListCustomer()
-//         // .then((response)=>response.json())
-//         .then((result=>{
-//             if(result.status === 200){
-//                 dispatch({
-//                     type: types.GET_CUSTOMER_ADMIN_SUCCESS,
-//                     payload: [...result.data.data]
-//                 })
-//                 callback()
-//             }else{
-//                 dispatch({
-//                     type: types.GET_CUSTOMER_ADMIN_FAIL
-//                 })
-//             }
-//         }))
-//         .catch((error)=>{
-//             dispatch({
-//                 type: types.GET_CUSTOMER_ADMIN_FAIL
-//             })
-//         })
-//     }
-//   }
+const getAllUsers= (callback = ()=>{}) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
+        dispatch({type: types.GET_ALL_USER})
+        UserAPI.getAllUser()
+        // .then((response)=>response.json())
+        .then((result=>{
+            if(result.status === 200){
+                dispatch({
+                    type: types.GET_ALL_USER_SUCCESS,
+                    payload: [...result.data.users]
+                })
+                callback()
+            }else{
+                dispatch({
+                    type: types.GET_ALL_USER_FAIL
+                })
+            }
+        }))
+        .catch((error)=>{
+            dispatch({
+                type: types.GET_ALL_USER_FAIL
+            })
+        })
+    }
+}
 
 // const getAllOwnerAdmin= (callback = ()=>{}) => {
 //     return async(dispatch) => {
@@ -207,52 +225,54 @@ const logout = (callback = ()=>{}) => {
 //     }
 //   }
 
-// const setActive = (owner, callback = ()=>{}) => {
-//     return async(dispatch) => {
-//         await CheckExpiredToken()
-//         dispatch({type: types.SET_ACTIVE_OWNER})
-//         UserAPI.setActiveUser(owner._id)
-//         // .then((response)=>response.json())
-//         .then((result=>{
-//             if(result.status === 200){
-//                 dispatch({
-//                     type: types.SET_ACTIVE_OWNER_SUCCESS,
-//                     payload: {
-//                         id: owner._id,
-//                         data: {...result.data.user}
-//                     }
-//                 })
-//                 useNotification.Success({
-//                     title: "Thành công!",
-//                     message:`Bạn đã ${owner?.active ? 'ngừng' : 'thiết lập'} hoạt động công ty ${owner?.companyName}!`
-//                 })
-//                 callback()
-//             }else{
-//                 dispatch({
-//                     type: types.SET_ACTIVE_OWNER_FAIL
-//                 })
-//             }
-//         }))
-//         .catch((error)=>{
-//             dispatch({
-//                 type: types.SET_ACTIVE_OWNER_FAIL
-//             })
-//             useNotification.Error({
-//                 title: "Lỗi!",
-//                 message:"Server Error!"
-//             })
-//         })
-//     }
-//   }
+const setActive = (owner, callback = ()=>{}) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
+        dispatch({type: types.SET_ACTIVE_OWNER})
+        UserAPI.setActiveUser(owner._id)
+        // .then((response)=>response.json())
+        .then((result=>{
+            if(result.status === 200){
+                dispatch({
+                    type: types.SET_ACTIVE_OWNER_SUCCESS,
+                    payload: {
+                        id: owner._id,
+                        data: {...result.data.user}
+                    }
+                })
+                useNotification.Success({
+                    title: "Thành công!",
+                    message:`Bạn đã ${owner?.active ? 'ngừng' : 'thiết lập'} hoạt động công ty ${owner?.companyName}!`
+                })
+                callback()
+            }else{
+                dispatch({
+                    type: types.SET_ACTIVE_OWNER_FAIL
+                })
+            }
+        }))
+        .catch((error)=>{
+            dispatch({
+                type: types.SET_ACTIVE_OWNER_FAIL
+            })
+            useNotification.Error({
+                title: "Lỗi!",
+                message:"Server Error!"
+            })
+        })
+    }
+  }
 
 
 export {
     setAccountInfo,
     login,
     logout,
+    signup,
+    getAllUsers,
     // getAllCustomerBooked,
     // getAllCustomerAdmin,
     // getAllOwnerAdmin,
     // becomeOwner,
-    // setActive
+    setActive
 }

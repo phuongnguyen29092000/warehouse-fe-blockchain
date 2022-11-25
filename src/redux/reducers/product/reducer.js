@@ -10,7 +10,12 @@ const initialState = {
     loading: false,
     error: {}
   },
-  similarProduct: {}
+  similarProduct: {},
+  productsPerCompany: {
+    data: [],
+    totalCount: 0,
+    loading: false
+  }
 }
 export const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -36,6 +41,36 @@ export const reducer = (state = initialState, action) => {
         products: products,
         totalCount: count
       }
+    }
+
+    case types.GET_PRODUCT_PER_COMPANY: {
+      return {
+        ...state,
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: true
+        }
+      }
+    }
+    case types.GET_PRODUCT_PER_COMPANY_FAIL: {
+      return {
+        ...state,
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: false
+        }
+      }
+    }
+    case types.GET_PRODUCT_PER_COMPANY_SUCCESS: {
+      const {products, count} = action.payload.data
+      return {
+        ...state,
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          data: products,
+          totalCount: count,
+          loading: false
+        }}
     }
 
     case types.GET_PRODUCT_SIMILAR: {

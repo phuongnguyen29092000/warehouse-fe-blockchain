@@ -1,5 +1,5 @@
-let PurchaseAgreement = artifacts.require("PurchaseAgreement");
+let Warehouse = artifacts.require("Warehouse");
 
 module.exports = function (deployer, network, accounts) {
-  deployer.deploy(PurchaseAgreement);
+  deployer.deploy(Warehouse);
 };

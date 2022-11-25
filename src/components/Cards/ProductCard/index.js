@@ -44,7 +44,6 @@ export default function ProductCard({
   };
 
   const handleAddToCart = (detail) => {
-    console.log(detail);
     setOpenDrawerCart(true);
     const products = JSON.parse(localStorage.getItem("products"))?.length
       ? JSON.parse(localStorage.getItem("products"))

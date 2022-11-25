@@ -30,6 +30,33 @@ const getAllProductByQueries = (queriesData, callback = ()=>{}) => {
     }
 }
 
+const getAllProductPerCompany = (id, queriesData, callback = ()=>{}) => {
+    return (dispatch) => {
+        dispatch({type: types.GET_PRODUCT_PER_COMPANY})
+        API.getAllProductPerCompany(id,queriesData)
+        // .then((response)=>response.json())
+        .then((result=>{
+            if(result.status === 200){
+                dispatch({ 
+                    type: types.GET_PRODUCT_PER_COMPANY_SUCCESS,
+                    payload: {...result.data}
+                })
+                callback([...result.data.data.products])
+            }else{
+                dispatch({
+                    type: types.GET_PRODUCT_PER_COMPANY_FAIL
+                })
+            }
+        }))
+        .catch((error)=>{
+            console.log(error);
+            dispatch({
+                type: types.GET_PRODUCT_PER_COMPANY_FAIL
+            })
+        })
+    }
+}
+
 const getProductById = (id, callback = ()=>{}) => {
     return (dispatch) => {
         dispatch({type: types.GET_PRODUCT_DETAIL})
@@ -196,7 +223,8 @@ const getSimilarProduct = (queriesData, callback = ()=>{}) => {
 export {
     getAllProductByQueries,
     getProductById,
-    getSimilarProduct
+    getSimilarProduct,
+    getAllProductPerCompany
     // createCategory,
     // updateCategory,
     // deleteCategory
