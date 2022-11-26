@@ -20,17 +20,21 @@ contract Order {
 
     enum order_status {
         PENDING,
+        RETURN,
         SUCCESS,
-        ABORT
+        CANCEL
     }
 
     address payable owner;
     address payable seller;
     uint256 public totalPrice;
     uint256 public totalProduct;
+
     uint256 public paymentTime;
+    uint256 public returnTime;
     uint256 public cancelTime;
     uint256 public dealine;
+
     TransactionTransfer[] public transactionTransfers;
     order_status public state;
 
@@ -47,21 +51,25 @@ contract Order {
         state = order_status.PENDING;
     }
 
-    event confirmPurchase(
+    event confirmPurchaseEvent(
         address from,
         address to,
         uint256 value,
         order_status state
     );
 
-    event confirmPaymentToSeller(
+    event confirmPaymentToSellerEvent(
         address from,
         address payable to,
         uint256 value,
         order_status state
     );
 
-    event cancelOrder(
+    event confirmReturnOrderEvent(
+        order_status state
+    );
+
+    event confirmCancelOrderEvent(
         address from,
         address payable to,
         uint256 value,
@@ -72,8 +80,16 @@ contract Order {
         return address(this);
     }
 
-    function tranferTotalPriceToOrder() public payable {
-        // require(msg.value == totalPrice, "value must equal totalPrice");
+    function confirmPurchase() public payable {
+        require(msg.sender == owner, "Not permission");
+        require(
+            state == order_status.PENDING,
+            "Order status must be status PENDING"
+        );
+        require(
+            msg.sender.balance > msg.value,
+            "Balance of account is not enough"
+        );
         TransactionTransfer memory transaction = TransactionTransfer(
             getAddress(),
             msg.value,
@@ -81,7 +97,7 @@ contract Order {
         );
         transactionTransfers.push(transaction);
 
-        emit confirmPurchase(
+        emit confirmPurchaseEvent(
             msg.sender,
             getAddress(),
             msg.value,
@@ -93,12 +109,12 @@ contract Order {
         return address(this).balance;
     }
 
-    function handleConfirmPayment() public payable {
+    function confirmPaymentToSeller() public payable {
         require(msg.sender == owner, "Not permission");
-        // require(
-        //     address(this).balance == totalPrice,
-        //     "Balance not equal totalPrice"
-        // );
+        require(
+            address(this).balance > 0,
+            "Balance of order is not enough"
+        );
         seller.transfer(address(this).balance);
         state = order_status.SUCCESS;
         paymentTime = block.timestamp;
@@ -110,7 +126,7 @@ contract Order {
         );
         transactionTransfers.push(transaction);
 
-        emit confirmPaymentToSeller(
+        emit confirmPaymentToSellerEvent(
             address(this),
             seller,
             totalPrice,
@@ -118,14 +134,31 @@ contract Order {
         );
     }
 
-    function handleCancelOrder() public payable {
+    function confirmReturnOrder() public payable {
         require(msg.sender == owner, "Not permission");
-        // require(
-        //     address(this).balance == totalPrice,
-        //     "Balance not equal totalPrice"
-        // );
+        state = order_status.RETURN;
+        returnTime = block.timestamp;
+
+        TransactionTransfer memory transaction = TransactionTransfer(
+            msg.sender,
+            0,
+            returnTime
+        );
+        transactionTransfers.push(transaction);
+
+        emit confirmReturnOrderEvent(
+            order_status.RETURN
+        );
+    }
+
+    function confirmCancelOrder() public payable {
+        require(msg.sender == seller, "Not permission");
+        require(
+            address(this).balance > 0,
+            "Balance of order is not enough"
+        );
         owner.transfer(address(this).balance);
-        state = order_status.ABORT;
+        state = order_status.CANCEL;
         cancelTime = block.timestamp;
 
         TransactionTransfer memory transaction = TransactionTransfer(
@@ -134,11 +167,11 @@ contract Order {
             paymentTime
         );
         transactionTransfers.push(transaction);
-        emit confirmPaymentToSeller(
+        emit confirmCancelOrderEvent(     
             address(this),
             owner,
             totalPrice,
-            order_status.ABORT
+            order_status.CANCEL
         );
     }
     function getOrderInfo() public view returns (OrderInfo memory) {

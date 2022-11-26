@@ -1,3 +1,4 @@
+// require('dotenv').config()
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { BrowserRouter } from 'react-router-dom'
 import { ReactNotifications } from 'react-notifications-component'

@@ -44,7 +44,7 @@ contract Warehouse {
     }
 
     function getOrderInfo(address _address)
-        public
+        private
         view
         returns (Order.OrderInfo memory)
     {
