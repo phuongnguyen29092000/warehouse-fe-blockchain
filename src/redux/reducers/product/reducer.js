@@ -34,7 +34,7 @@ export const reducer = (state = initialState, action) => {
       }
     }
     case types.GET_PRODUCT_SUCCESS: {
-      const {products, count} = action.payload.data
+      const {products, count} = action?.payload?.data
       return {
         ...state,
         loading: false,
@@ -57,6 +57,7 @@ export const reducer = (state = initialState, action) => {
         ...state,
         productsPerCompany: {
           ...state.productsPerCompany,
+          data: [],
           loading: false
         }
       }

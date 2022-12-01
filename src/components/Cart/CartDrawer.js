@@ -125,11 +125,11 @@ const CartDrawer = ({ onClose }) => {
           );
         })}
       </div>
-      <div style={{display: 'flex',padding: '15px', justifyContent: 'end', alignItems: 'center'}}>
+      {/* <div style={{display: 'flex',padding: '15px', justifyContent: 'end', alignItems: 'center'}}>
         <div>
           <PriceDiscount valueDiscount={0} valuePrice={totalPrice} />
         </div>
-      </div>
+      </div> */}
       <Button variant="contained" color="warning" style={{height: 60}} onClick={()=> navigate('/gio-hang')}>Đặt hàng</Button>
     </div>
   );

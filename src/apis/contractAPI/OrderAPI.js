@@ -20,6 +20,7 @@ const transactionReceiptAsync = async function (txnHash, resolve, reject) {
 };
 
 const confirmPurchase = (contract, account, totalPrice) => {
+	console.log(totalPrice);
 	return contract.methods
 		.confirmPurchase()
 		.send(
@@ -39,6 +40,48 @@ const confirmPurchase = (contract, account, totalPrice) => {
 			}
 		);
 };
+
+const confirmDeliveryOrder = (contract, account) => {
+    return contract.methods
+		.confirmOrder()
+		.send(
+			{ from: account, gas: 3500000 },
+			function (err, transactionHash) {
+				if (!err)
+					toast.promise(
+						new Promise(function (resolve, reject) {
+							transactionReceiptAsync(transactionHash, resolve, reject);
+						}),
+						{
+							pending: "Transaction pending",
+							success: "Transaction confirm",
+							error: "Transaction rejected",
+						}
+					);
+			}
+		);
+}
+
+const confirmCancelOrder = (contract, account) => {
+    return contract.methods
+		.confirmCancelOrder()
+		.send(
+			{ from: account, gas: 3500000 },
+			function (err, transactionHash) {
+				if (!err)
+					toast.promise(
+						new Promise(function (resolve, reject) {
+							transactionReceiptAsync(transactionHash, resolve, reject);
+						}),
+						{
+							pending: "Transaction pending",
+							success: "Transaction confirm",
+							error: "Transaction rejected",
+						}
+					);
+			}
+		);
+}
 
 const confirmPaymentToSeller = (contract, account) => {
     return contract.methods
@@ -82,9 +125,9 @@ const confirmReturnOrder = (contract, account) => {
 		);
 }
 
-const confirmCancelOrder = (contract, account) => {
+const confirmReturnedOrder = (contract, account) => {
     return contract.methods
-		.confirmCancelOrder()
+		.confirmReturnedOrder()
 		.send(
 			{ from: account, gas: 3500000 },
 			function (err, transactionHash) {
@@ -107,11 +150,18 @@ const getOrderInfo = (contract) => {
 	return contract.methods.getOrderInfo().call();
 };
 
+const getAllTransactionOrder = (contract) => {
+	return contract.methods.getAllTransactionOrder().call();
+};
+
     
 export {
     confirmPurchase,
     confirmPaymentToSeller,
     confirmCancelOrder,
 	confirmReturnOrder,
-    getOrderInfo
+    getOrderInfo,
+	getAllTransactionOrder,
+	confirmDeliveryOrder,
+	confirmReturnedOrder
 }

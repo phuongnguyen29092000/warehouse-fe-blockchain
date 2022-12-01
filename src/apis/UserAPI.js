@@ -1,10 +1,14 @@
 import axiosClient from "./axiosClient";
 import {getHeaderWithToken, refreshTokenValue} from "./getHeaderWithToken";
 
-
 const signup = (data) => {
     let url = '/user/create'
     return axiosClient.post(url,data)
+}
+
+const getUserById = (id) => {
+    let url = `/user/${id}`
+    return axiosClient.get(url)
 }
 
 const getAllUser = () => {
@@ -17,8 +21,15 @@ const setActiveUser = (id) => {
     return axiosClient.put(url, {}, { headers: getHeaderWithToken() });
 }
 
+const getUserBySearchKey = (searchKey) => {
+    let url = `/user/search?key=${searchKey}`
+    return axiosClient.get(url);
+}
+
 export default {
     signup,
     getAllUser,
-    setActiveUser
+    setActiveUser,
+    getUserById,
+    getUserBySearchKey
 }

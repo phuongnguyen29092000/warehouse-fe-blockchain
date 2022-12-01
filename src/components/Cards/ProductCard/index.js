@@ -226,7 +226,7 @@ export default function ProductCard({
           <Button
             size="small"
             disabled={false}
-            color="info"
+            color="warning"
             variant="contained"
             onClick={() => handleAddToCart(dataDetail)}
           >
@@ -238,7 +238,7 @@ export default function ProductCard({
           >
             <Button
               size="small"
-              color="info"
+              color="warning"
               variant="outlined"
               sx={{ ml: "10px" }}
             >

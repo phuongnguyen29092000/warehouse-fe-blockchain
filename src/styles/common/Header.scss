@@ -1,0 +1,23 @@
+.search-box__header {
+    display: flex;
+    align-items: center;
+    .search-header-button {
+        position: relative;
+        cursor: pointer;
+        margin-left: -2px;
+        padding-left: 25px;
+        border-radius: 0px;
+        display: flex;
+        align-items: center;
+        background: #FF6A00;
+        height: 54px;
+        width: 130px;
+        border-top-right-radius: 35px;
+        border-bottom-right-radius: 35px;
+        .close {
+            position: absolute;
+            top: 15px;
+            left: -30px;
+        }
+    }
+}

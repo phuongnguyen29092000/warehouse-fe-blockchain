@@ -16,11 +16,11 @@
         padding: 10px 0px 0px 0px;
         background-color: #fff;
         border-radius: 4px;
-        border-top: 20px solid rgb(14, 122, 231);
+        min-height: 1500px;
         .filter-header {
             margin: 0;
             margin-bottom: 20px;
-            color: rgb(65 149 247);
+            color: #FF6A00;
             font-weight: 600;
             font-family: monospace !important;
             font-size: 23px;
@@ -35,7 +35,22 @@
         padding: 10px 20px 20px 0;
         background-color: #fff;
         border-radius: 4px;
-        border-top: 20px solid rgb(14, 122, 231);
+        min-height: 1500px;
+        .empty-product {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-top: 100px;
+            h2 {
+                color: #292929;
+            }
+            img {
+                width: 200px;
+                height: 200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
     }
 }
 
@@ -45,8 +60,40 @@
     }
 }
 
+.product-company-container {
+    display: flex;
+    flex-direction: column;
+    .company-info {
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 78%;
+        height: auto;
+        display: flex;
+        justify-content: center;
+    }
+    @media only screen and (max-width: 1600px) {
+        .company-info {
+            width: 92%;
+        }
+    }
+}
+
 .select-perpage {
     .css-11u53oe-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input {
         padding: 10px
+    }
+}
+
+.search-product-name {
+    .MuiFormLabel-root {
+        font-size: 18px;
+        font-weight: 600;
+        color: rgb(62, 80, 96);
+    }
+    .hidden-label {
+        label{
+            display: none;
+        }
     }
 }

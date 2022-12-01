@@ -4,17 +4,22 @@ import {
   Checkbox,
   FormControl,
   Grid,
+  InputAdornment,
   InputLabel,
   makeStyles,
   MenuItem,
   Select,
   Slider,
+  TextField,
 } from "@mui/material";
 import RegardPrice from "LogicResolve/RegardPrice";
 import { Container } from "@mui/system";
 import { debounce } from "lodash";
+import SearchIcon from '@mui/icons-material/Search';
+import { useState } from "react";
 
 const FilterProduct = ({ queriesData, setQueriesData }) => {
+  const [search, setSearch] = useState('')
   const { register, handleSubmit, reset, control } = useForm();
   const onHandleSubmit = (data) => {
     console.log({ data });
@@ -34,6 +39,14 @@ const FilterProduct = ({ queriesData, setQueriesData }) => {
       skip: 1
     });
   }, 400);
+
+  const handleSearchName =async() => {
+    setQueriesData({
+      ...queriesData,
+      s: search?.toLowerCase(),
+      skip: 1
+    });
+  }
 
   return (
     <div
@@ -140,7 +153,7 @@ const FilterProduct = ({ queriesData, setQueriesData }) => {
                             skip: 1
                           });
                         }}
-                        checked={field.value}
+                        checked={queriesData?.isDiscount}
                         style={{ padding: 0, paddingLeft: 5 }}
                       />
                     )}
@@ -172,6 +185,28 @@ const FilterProduct = ({ queriesData, setQueriesData }) => {
                 <MenuItem value={50}>50</MenuItem>
                 <MenuItem value={100}>100</MenuItem>
               </Select>
+            </div>
+            <div style={{ display: "flex", width: "100%", marginTop: 20, alignItems: 'center'}} className='search-product-name'>
+              <TextField 
+                id="standard-basic" 
+                label="Tên sản phẩm" 
+                variant="standard" 
+                style={{width: '100%'}}
+                value={search}
+                className={search && 'hidden-label'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment>
+                        <div onClick={handleSearchName}>
+                          <SearchIcon sx={{cursor: 'pointer'}}/>
+                        </div>
+                    </InputAdornment>
+                  )
+                }}
+                onChange={(e)=> {
+                  setSearch(e.target.value)
+                }}
+                />
             </div>
           </Grid>
         </form>

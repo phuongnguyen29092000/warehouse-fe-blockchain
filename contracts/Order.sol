@@ -10,19 +10,29 @@ contract Order {
         uint256 totalPrice;
         uint256 totalProduct;
         order_status state;
+        uint256 purchaseTime;
+        uint256 confirmedTime;
+        uint256 cancelTime;
+        uint256 paymentTime;
+        uint256 returnTime;
+        uint256 returnedTime;
+        uint256 dealine;
     }
     
-    struct TransactionTransfer {
+    struct TransactionOrder {
         address beneficiaryAccount;
         uint256 amount;
+        order_status state;
         uint256 timestamp;
     }
 
     enum order_status {
         PENDING,
-        RETURN,
+        CONFIRMED,
+        CANCEL,
         SUCCESS,
-        CANCEL
+        RETURN,
+        RETURNED
     }
 
     address payable owner;
@@ -30,24 +40,30 @@ contract Order {
     uint256 public totalPrice;
     uint256 public totalProduct;
 
+    uint256 public purchaseTime;
+    uint256 public confirmedTime;
+    uint256 public cancelTime;
     uint256 public paymentTime;
     uint256 public returnTime;
-    uint256 public cancelTime;
+    uint256 public returnedTime;
+
     uint256 public dealine;
 
-    TransactionTransfer[] public transactionTransfers;
+    TransactionOrder[] public transactionOrders;
     order_status public state;
 
     constructor(
         address _ownerAddress,
         address _seller,
         uint256 _totalPrice,
-        uint256 _totalProduct
+        uint256 _totalProduct,
+        uint256 _deadline
     ) {
         owner = payable(_ownerAddress);
         seller = payable(_seller);
         totalPrice = _totalPrice;
         totalProduct = _totalProduct;
+        dealine = _deadline;
         state = order_status.PENDING;
     }
 
@@ -55,6 +71,14 @@ contract Order {
         address from,
         address to,
         uint256 value,
+        order_status state
+    );
+
+    event confirmOrderEvent(
+        order_status state
+    );
+
+    event confirmCancelOrderEvent(
         order_status state
     );
 
@@ -69,7 +93,7 @@ contract Order {
         order_status state
     );
 
-    event confirmCancelOrderEvent(
+    event confirmReturnedOrderEvent(
         address from,
         address payable to,
         uint256 value,
@@ -80,6 +104,10 @@ contract Order {
         return address(this);
     }
 
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
     function confirmPurchase() public payable {
         require(msg.sender == owner, "Not permission");
         require(
@@ -87,15 +115,21 @@ contract Order {
             "Order status must be status PENDING"
         );
         require(
+            msg.value > 0,
+            "Value must be greater 0"
+        );
+        require(
             msg.sender.balance > msg.value,
             "Balance of account is not enough"
         );
-        TransactionTransfer memory transaction = TransactionTransfer(
+        purchaseTime = block.timestamp;
+        TransactionOrder memory transaction = TransactionOrder(
             getAddress(),
             msg.value,
-            block.timestamp
+            state,
+            purchaseTime
         );
-        transactionTransfers.push(transaction);
+        transactionOrders.push(transaction);
 
         emit confirmPurchaseEvent(
             msg.sender,
@@ -104,9 +138,48 @@ contract Order {
             order_status.PENDING
         );
     }
-    
-    function getBalance() public view returns (uint256) {
-        return address(this).balance;
+
+     function confirmOrder() public payable {
+        require(msg.sender == seller, "Not permission");
+        require(
+            state == order_status.PENDING,
+            "Order status must be status PENDING"
+        );
+        state = order_status.CONFIRMED;
+        confirmedTime = block.timestamp;
+        TransactionOrder memory transaction = TransactionOrder(
+            msg.sender,
+            0,
+            state,
+            confirmedTime
+        );
+        transactionOrders.push(transaction);
+
+        emit confirmOrderEvent(
+            order_status.CONFIRMED
+        );
+    }
+
+    function confirmCancelOrder() public payable {
+        require(msg.sender == seller, "Not permission");
+        require(
+            state == order_status.PENDING,
+            "Order status must be status PENDING"
+        );
+        owner.transfer(address(this).balance);
+        state = order_status.CANCEL;
+        cancelTime = block.timestamp;
+        TransactionOrder memory transaction = TransactionOrder(
+            owner,
+            totalPrice,
+            state,
+            cancelTime
+        );
+        transactionOrders.push(transaction);
+
+        emit confirmCancelOrderEvent(
+            order_status.CANCEL
+        );
     }
 
     function confirmPaymentToSeller() public payable {
@@ -115,16 +188,21 @@ contract Order {
             address(this).balance > 0,
             "Balance of order is not enough"
         );
+        require(
+            state == order_status.CONFIRMED,
+            "Order status must be status CONFIRMED"
+        );
         seller.transfer(address(this).balance);
         state = order_status.SUCCESS;
         paymentTime = block.timestamp;
 
-        TransactionTransfer memory transaction = TransactionTransfer(
+        TransactionOrder memory transaction = TransactionOrder(
             seller,
-            address(this).balance,
+            totalPrice,
+            state,
             paymentTime
         );
-        transactionTransfers.push(transaction);
+        transactionOrders.push(transaction);
 
         emit confirmPaymentToSellerEvent(
             address(this),
@@ -136,44 +214,54 @@ contract Order {
 
     function confirmReturnOrder() public payable {
         require(msg.sender == owner, "Not permission");
+        require(
+            state == order_status.CONFIRMED,
+            "Order status must be status CONFIRMED"
+        );
         state = order_status.RETURN;
         returnTime = block.timestamp;
-
-        TransactionTransfer memory transaction = TransactionTransfer(
+        TransactionOrder memory transaction = TransactionOrder(
             msg.sender,
             0,
+            state,
             returnTime
         );
-        transactionTransfers.push(transaction);
+        transactionOrders.push(transaction);
 
         emit confirmReturnOrderEvent(
             order_status.RETURN
         );
     }
 
-    function confirmCancelOrder() public payable {
+    function confirmReturnedOrder() public payable {
         require(msg.sender == seller, "Not permission");
         require(
             address(this).balance > 0,
             "Balance of order is not enough"
         );
-        owner.transfer(address(this).balance);
-        state = order_status.CANCEL;
-        cancelTime = block.timestamp;
-
-        TransactionTransfer memory transaction = TransactionTransfer(
-            owner,
-            address(this).balance,
-            paymentTime
+        require(
+            state == order_status.RETURN,
+            "Order status must be status RETURN"
         );
-        transactionTransfers.push(transaction);
-        emit confirmCancelOrderEvent(     
+        owner.transfer(address(this).balance);
+        state = order_status.RETURNED;
+        returnedTime = block.timestamp;
+
+        TransactionOrder memory transaction = TransactionOrder(
+            owner,
+            totalPrice,
+            state,
+            returnedTime
+        );
+        transactionOrders.push(transaction);
+        emit confirmReturnedOrderEvent(     
             address(this),
             owner,
             totalPrice,
-            order_status.CANCEL
+            order_status.RETURNED
         );
     }
+
     function getOrderInfo() public view returns (OrderInfo memory) {
         return
             OrderInfo(
@@ -182,7 +270,23 @@ contract Order {
                 seller,
                 totalPrice,
                 totalProduct,
-                state
+                state,
+                purchaseTime, 
+                confirmedTime,
+                cancelTime,
+                paymentTime,
+                returnTime,
+                returnedTime,
+                dealine
             );
+    }
+
+    function getAllTransactionOrder()
+        public
+        view
+        returns (TransactionOrder[] memory)
+    {
+        TransactionOrder[] memory t = transactionOrders;
+        return t;
     }
 }

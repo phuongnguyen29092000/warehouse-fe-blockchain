@@ -1,3 +1,25 @@
+.list-order-user {
+    display: flex;
+    height: auto;
+    flex-direction: column;
+    margin-bottom: 150px;
+}
+
+.list-order-user:not(:last-child){
+    margin-bottom: 50px;
+}
+
+.order-item-container {
+    display: flex;
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #fff;
+    height: auto;
+    padding-bottom: 30px;
+    margin-top: 50px;
+}
+
 .line-product {
     padding: 15px 0px 15px 0px;
     margin-bottom: 5px;

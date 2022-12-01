@@ -29,6 +29,7 @@ import CartDrawer from 'components/Cart/CartDrawer';
 import {DEFAULT_PARAMS} from '../../utils/constant'
 import ProductCard from 'components/Cards/ProductCard';
 import { Link, useNavigate } from "react-router-dom";
+import TabDetail from 'components/TabDetail';
 
 const useStyles = makeStyles({
     avatar: {
@@ -210,7 +211,7 @@ function ProductDetail() {
             {loading ? <Spinner /> :
                 (data &&
                     <Container maxWidth="lg">
-                        <Box sx={{ paddingTop: '70px', paddingLeft: { md: '60px' }, paddingRight: { md: '60px' } }}>
+                        <Box sx={{ paddingTop: '70px', paddingLeft: { md: '20px' }, paddingRight: { md: '20px' } }}>
                             <Grid container spacing={2}>
                                 <Grid className='tour-slide-wrapper' item md={6} xs={12} style={{ position: "relative", marginBottom: '70px'}}>
                                     <div style={{width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
@@ -225,22 +226,12 @@ function ProductDetail() {
                                     <Typography gutterBottom variant="h4" component="div" align='left'>
                                         {data.productName} 
                                     </Typography>
-                                    <Typography gutterBottom variant="h6" component="div" align='left' style={{display:'flex'}}>
+                                    <Typography gutterBottom variant="h6" component="div" align='left' style={{display:'flex', cursor: 'pointer'}} onClick={()=> navigate(`/kho/${data.user._id}`)}>
                                         {data.user?.companyName}{' '}{!data.user?.active && <h4 style={{marginLeft:'10px',textDecoration:'line-through', color:"#858585"}}>Tạm ngừng hoạt động</h4>}
                                     </Typography>
                                     <Typography gutterBottom variant="body1" component="div" align='left' color="secondary">
                                         <PriceDiscount valueDiscount={data.discount} valuePrice={data.price} />
                                     </Typography>
-                                    {/* <Typography gutterBottom component="div" variant="body1" align="left" style={{ display: 'flex', fontFamily: 'system-ui', color: 'gray' }}>
-                                        <Rating name="customized-rating"
-                                            defaultValue={data.ratingsAverage}
-                                            value={rating}
-                                            max={5}
-                                            precision={0.1}
-                                            readOnly
-                                            size="medium"
-                                        />
-                                    </Typography> */}
                                     <Typography gutterBottom variant="body1" component="div" align='left'>
                                         <span style={{ color: 'darkblue', fontWeight: 'bold' }}>Nhà sản xuất: </span>
                                         {data?.manufacturer?.companyName}
@@ -311,37 +302,39 @@ function ProductDetail() {
                             </Grid>
 
                             <Divider style={{ margin: '10px 0' }} />
-                            {/* <Grid>
-                                <TabDetail detail={data?.schedule} feedback={listFeedback} onHandleSendFeedback={onHandleSendFeedback} />
-                            </Grid> */}
-                            {console.log(similarProduct)}
-                            <Box sx={{ padding: '20px' }}>
+                            <Grid>
+                                <TabDetail detail={data?.description}/>
+                            </Grid>
+                            <Divider style={{ margin: '10px 0' }} />
+                            <Box >
                                 {
                                     similarProduct?.length > 0 &&
                                     <div>
-                                        <h2 style={{ margin: '20px 0', textAlign: 'center', fontFamily: 'monospace', color: 'darkblue' }}>SẢN PHẨM TƯƠNG TỰ</h2>
+                                        <h2 style={{ margin: '60px 0 30px 0', textAlign: 'center', fontFamily: 'monospace', color: 'darkblue' }}>SẢN PHẨM TƯƠNG TỰ</h2>
 
-                                        <Slider {...settings} style={{ padding: '20px'}}>
+                                        <div style={{display: 'flex', width: '100%'}}>
                                             {
-                                                similarProduct.map((product, index) => (
-                                                    <ProductCard
-                                                        _id={product._id}
-                                                        productName={product.productName}
-                                                        description={product.description}
-                                                        companyName={product?.user?.companyName}
-                                                        imageUrl={ConvertToImageURL(product.imageUrl)}
-                                                        price={product.price}
-                                                        active={product?.user?.active}
-                                                        dateOfInventory={product.dateOfInventory}
-                                                        minimumQuantity={product.minimumQuantity}
-                                                        manufacturer={product.manufacturer.companyName}
-                                                        discount={product?.discount}
-                                                        setOpenDrawerCart={setOpenDrawerCart}
-                                                        dataDetail={product}
-                                                />
+                                                similarProduct.slice(0,3).map((product, index) => (
+                                                    <div key={index} style={{padding: '0 10px'}}>
+                                                        <ProductCard
+                                                            _id={product._id}
+                                                            productName={product.productName}
+                                                            description={product.description}
+                                                            companyName={product?.user?.companyName}
+                                                            imageUrl={ConvertToImageURL(product.imageUrl)}
+                                                            price={product.price}
+                                                            active={product?.user?.active}
+                                                            dateOfInventory={product.dateOfInventory}
+                                                            minimumQuantity={product.minimumQuantity}
+                                                            manufacturer={product.manufacturer.companyName}
+                                                            discount={product?.discount}
+                                                            setOpenDrawerCart={setOpenDrawerCart}
+                                                            dataDetail={product}
+                                                        />
+                                                    </div>
                                                 ))
                                             }
-                                        </Slider>
+                                        </div>
                                     </div>
                                 }
                             </Box>

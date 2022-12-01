@@ -8,3 +8,4 @@ export const DEFAULT_PARAMS = {
     isDiscount: false,
     s: ''
 }
+

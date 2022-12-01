@@ -2,7 +2,7 @@ import AppBar from "@mui/material/AppBar";
 import Container from "@mui/material/Container";
 import Logo from "../../public/logoWarehouse.jpg";
 import SearchBox from "components/SearchBox";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PersonIcon from "@mui/icons-material/Person";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import HistoryIcon from "@mui/icons-material/History";
@@ -13,6 +13,8 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import { logout } from "redux/reducers/user/action";
 import { useDispatch, useSelector } from "react-redux";
 import useNotification from "hooks/notification";
+import { useWeb3React } from "@web3-react/core";
+import LoginIcon from '@mui/icons-material/Login';
 
 const Header = () => {
   const [auth, setAuth] = React.useState(true);
@@ -20,7 +22,7 @@ const Header = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { account } = useSelector((store) => store.user)
-
+	const { active, deactivate } = useWeb3React();
 
   const handleChange = (event) => {
     setAuth(event.target.checked);
@@ -33,6 +35,7 @@ const Header = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   return (
     <AppBar
       position="fixed"
@@ -64,14 +67,14 @@ const Header = () => {
               marginLeft: 30,
             }}
           >
-            <Link style={{ textDecoration: "none", width: 90 }} to={"/"}>
+            {/* <Link style={{ textDecoration: "none", width: 90 }} to={!Object.keys(account)?.length ? '/dang-nhap' : `/kho/${account._id}`}>
               <div style={{ width: "100%", height: 30 }}>
                 <PersonIcon fontSize="medium" color="action" />
               </div>
               <span style={{ fontSize: 12, color: "#292929" }}>
                 My Warehouse
               </span>
-            </Link>
+            </Link>  */}
 
             <Link style={{ textDecoration: "none", width: 90, position: 'relative'}} to={"/gio-hang"}>
               <div style={{ width: "100%", height: 30 }}>
@@ -114,49 +117,53 @@ const Header = () => {
             </Link>
           </div>
           <div style={{ marginLeft: 20 }}>
-            <Link style={{ textDecoration: "none", width: 90 }} to={"/dang-nhap"}>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-                color="default"
-                style={{ background: "rgb(233 230 230)" }}
-              >
-                <AccountCircle sx={{ width: 30, height: 30 }} />
-              </IconButton>
-            </Link>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={handleClose}>Tài khoản</MenuItem>
-              <MenuItem onClick={()=> {
-                if(!Object.keys(account)?.length) {
-                  useNotification.Error({
-                    title: "Cảnh báo!",
-                    message:"Ban chưa đăng nhập!",
-                    duration: 4
-                  })
-                    return
-                }
-                dispatch(logout())
-                handleClose()
-                navigate('/')
-              }}>Đăng xuất</MenuItem>
-            </Menu>
+            {
+              !Object.keys(account)?.length ?
+                <Link style={{ textDecoration: "none", width: 90 }} to={"/dang-nhap"}>
+                  <LoginIcon fontSize="large" htmlColor="gray"/>
+                </Link>
+              : <>
+                <IconButton
+                  size="large"
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  onClick={handleMenu}
+                  color="default"
+                  style={{ background: "rgb(233 230 230)" }}
+                >
+                  <AccountCircle sx={{ width: 30, height: 30 }} />
+                </IconButton>
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorEl}
+                  anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+                  <MenuItem onClick={handleClose}>Tài khoản</MenuItem>
+                  <MenuItem onClick={()=> {
+                    dispatch(logout((res)=> {
+                      if(res){
+                        console.log('success');
+                        deactivate()
+                      }
+                    }))
+                    deactivate()
+                    handleClose()
+                    navigate('/')
+                  }}>Đăng xuất</MenuItem>
+                </Menu>
+              </>
+            }
           </div>
         </div>
       </Container>

@@ -70,7 +70,7 @@ const logout = (callback = ()=>{}) => {
                     message:"Đăng xuất thành công!",
                     duration: 4
                 })
-                callback()
+                callback(true)
             } else {
                 useNotification.Error({
                     title: "Lỗi server!",
@@ -79,6 +79,7 @@ const logout = (callback = ()=>{}) => {
             }
         })
         .catch((error)=>{
+            console.log(new Error(error));
             useNotification.Error({
                 title: "Lỗi server!",
                 message:"Đăng xuất thất bại!"
@@ -270,9 +271,5 @@ export {
     logout,
     signup,
     getAllUsers,
-    // getAllCustomerBooked,
-    // getAllCustomerAdmin,
-    // getAllOwnerAdmin,
-    // becomeOwner,
     setActive
 }

@@ -1,0 +1,57 @@
+.company-info {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    max-height: 300px;
+    background-color: #fff;
+    .block-left {
+        display: flex;
+        align-items: center;
+        border-right: 1px solid rgba(0,0,0,.09);
+        img {
+           width: 75px;
+           height: 75px; 
+           border-radius: 50%;
+        }
+        .title-company {
+            display: flex;
+            flex-direction: column;
+            margin-left: 20px;
+            h4 {
+                margin: 0;
+                color: rgba(0,0,0,.8);
+                line-height: 1.5;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-weight: 500;
+                width: 100%;
+                font-weight: 600;
+            }
+            span {
+                color: rgba(0,0,0,.54);
+                margin-top: 0.3125rem;
+                text-transform: capitalize;
+                font-size: 15px;
+                white-space: nowrap;
+                text-align: left;
+                display: flex;
+                align-items: center;
+            }
+        }
+        .rating{ 
+            margin-top: -20px;
+            margin-left: 10px;
+        }
+    }
+    .info-contact {
+        padding: 8px 0px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 0 !important;
+        span {
+            margin-left: 5px;
+        }
+    }
+
+}

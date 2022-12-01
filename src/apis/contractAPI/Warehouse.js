@@ -21,8 +21,8 @@ const transactionReceiptAsync = async function (txnHash, resolve, reject) {
 
 const addOrderToWarehouse = (contract, buyer, seller, totalPrice, totalProduct, details) => {
 	return contract.methods
-		.addOrder(buyer, seller, totalPrice, totalProduct, details, target)
-		.send({ from: account, gas: 3500000 }, function (err, transactionHash) {
+		.addOrder(buyer, seller, totalPrice, totalProduct, details)
+		.send({ from: buyer, gas: 3500000 }, function (err, transactionHash) {
 			if (!err)
 				toast.promise(
 					new Promise(function (resolve, reject) {
@@ -43,7 +43,7 @@ const getAllOrder = (contract) => {
 }
 
 const getOrderPerCompany = (contract, addressCompany) => {
-    return contract.methods.getOrderPerCompany(addressCompany)
+    return contract.methods.getOrderPerCompany(addressCompany).call()
 }
 
 const getOwner = (contract) => {

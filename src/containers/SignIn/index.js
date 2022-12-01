@@ -15,6 +15,11 @@ import { makeStyles } from "@mui/styles";
 import { login } from '../../redux/reducers/user/action'
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import {ethers} from 'ethers'; 
+import useNotification from "hooks/notification";
+import { useWeb3React } from "@web3-react/core";
+import { injected } from "../../components/Wallet";
+
 
 function Copyright(props) {
   return (
@@ -49,12 +54,48 @@ export default function SignIn() {
   const classes = useStyles();
   const dispatch = useDispatch()
   const navigate = useNavigate()
+	const { active, activate, error } = useWeb3React();
+
+  const accountChangedHandler = (account) => {
+    console.log(account);
+    getUserBalance(account);
+  }
+
+  const getUserBalance = (address) => {
+    window.ethereum.request({method: 'eth_getBalance', params: [address, 'latest']})
+        .then((balance)=> {
+            console.log(ethers.utils.formatEther(balance));
+        })
+  }
+
+  // window?.ethereum?.on('accountsChanged', accountChangedHandler)
   
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     dispatch(login(data, (res)=> {
-      if(res) navigate('/')
+      if(res) {
+        if (active) {
+          return;
+        }
+        try {
+          activate(injected);
+        } catch (ex) {
+          console.log(ex);
+        }
+        // window.ethereum.request({method: 'eth_requestAccounts'})
+        //   .then(res=> {
+        //     accountChangedHandler(res[0])
+        //     useNotification.Success({
+        //       title: "Ví Metamask",
+        //       message:"Kết nối thành công!",
+        //       duration: 3
+        //     })
+        //     setTimeout(()=> {
+        //       navigate('/')
+        //     }, 3000)
+        // })   
+      }
     }))
   };
 

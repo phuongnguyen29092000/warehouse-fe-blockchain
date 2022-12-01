@@ -5,6 +5,7 @@ export const ROUTE_SIGNUP = '/dang-ki'
 export const ROUTE_LIST_PRODUCT = '/san-pham'
 export const ROUTE_PRODUCT_DETAIL = '/chi-tiet-san-pham/:id'
 export const ROUTE_CART = '/gio-hang'
+export const ROUTE_MY_WAREHOUSE = '/kho/:id'
 
 export const ROUTE_MANAGE_ACCOUNT_USER = '/ca-nhan'
 export const ROUTE_MANAGE_PROFILE = '/ca-nhan/thong-tin'

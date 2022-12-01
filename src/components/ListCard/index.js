@@ -7,10 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 // import { getAllNews } from 'redux/reducers/news/action';
 import { Link } from 'react-router-dom';
 
-const ListCard = ({ data, queriesData, setQueriesData, setOpenDrawerCart}) => {
-    const dispatch = useDispatch()
-    const {products, totalCount} = useSelector((store) => store.product)
-    
+const ListCard = ({ data, queriesData, setQueriesData, totalCount, setOpenDrawerCart}) => {
     const handleOnChange = (e, value) => {
         setQueriesData({...queriesData, skip: value})
     }

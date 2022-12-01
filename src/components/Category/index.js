@@ -13,6 +13,7 @@ const Category = ({queriesData, setQueriesData}) => {
   const [cateActiveHover, setCateActiveHover] = useState("");
 
   useEffect(() => {
+    if(categories?.length) return 
     dispatch(getAllCategory());
   }, []);
   return (
@@ -24,11 +25,10 @@ const Category = ({queriesData, setQueriesData}) => {
           style={{ display: "flex", width: "100%", flexDirection: "column" }}
         >
           {!!categories?.length &&
-            categories.map((cat) => {
+            categories.map((cat, idx) => {
               return (
-                <>
+                <div key={idx.id} style={{display: 'flex', flexDirection: 'column'}}>
                   <div
-                    key={cat.id}
                     style={{
                       padding: "10px 20px",
                       display: "flex",
@@ -103,7 +103,7 @@ const Category = ({queriesData, setQueriesData}) => {
                         </div>
                       );
                     })}
-                </>
+                </div>
               );
             })}
         </div>

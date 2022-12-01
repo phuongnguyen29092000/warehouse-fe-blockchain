@@ -5,12 +5,10 @@ import { useLocation } from 'react-router-dom';
 import { setActiveUrl } from 'redux/reducers/activeUrl/action';
 import ListCard from '../../components/ListCard';
 import SpinnerLoading from '../../components/Spinner';
+import EmptyProductIcon from '../../public/empty-product.jpg'
 
-const ProductResult = ({queriesData, setQueriesData, setOpenDrawerCart}) => {
-    const dispatch = useDispatch()
-    const { products, loading } = useSelector((store) => store.product)
+const ProductResult = ({queriesData, setQueriesData, dataResult, loading, totalCount, setOpenDrawerCart}) => {
     // const { search } = useLocation();
-    const [dataResult, setDataResult] = useState([])
     // let searchParagram = new URLSearchParams(search);
     // useEffect(() => {
     //     let param = {}
@@ -33,28 +31,24 @@ const ProductResult = ({queriesData, setQueriesData, setOpenDrawerCart}) => {
     //             })
     //     }
     // }, [search])
-    
-    useEffect(() => {
-        setDataResult(products)
-    }, [products])
-
     useEffect(() => {
         document.title = 'Kết quả'
         // dispatch(setActiveUrl(''))
     }, [])
 
     return (
-        <div className='tour-list tour-result'>
+        <div>
             {
                 !loading ?
                     <>
-                        {/* <CarouselInstroduce /> */}
-                        {/* <FilterTour /> */}
                         {
                             dataResult?.length > 0 ?
-                                <ListCard data={dataResult} queriesData={queriesData} setQueriesData={setQueriesData} setOpenDrawerCart={setOpenDrawerCart}/>
+                                <ListCard data={dataResult} queriesData={queriesData} setQueriesData={setQueriesData} setOpenDrawerCart={setOpenDrawerCart} totalCount={totalCount}/>
                                 :
-                                <h3 className='title-not-found'>Không tìm thấy sản phẩm phù hợp</h3>
+                                <div className='empty-product'>
+                                    <h2 className='title-not-found'>Không tìm thấy sản phẩm phù hợp</h2>
+                                    <img src={EmptyProductIcon} alt=''/>
+                                </div>
                         }
                     </>
                     : <SpinnerLoading />

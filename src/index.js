@@ -5,11 +5,21 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import store from './store';
+import { Web3ReactProvider } from "@web3-react/core";
+import Web3 from "web3";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+const getLibrary = (provider) => {
+	const library = new Web3(provider);
+	return library;
+};
+
 root.render(
   <Provider store={store}>
-  <App />
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <App />
+    </Web3ReactProvider>
 </Provider>,
 );
 

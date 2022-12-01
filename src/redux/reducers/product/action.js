@@ -7,15 +7,15 @@ const getAllProductByQueries = (queriesData, callback = ()=>{}) => {
     return (dispatch) => {
         dispatch({type: types.GET_PRODUCT})
         API.getAllProduct(queriesData)
-        // .then((response)=>response.json())
         .then((result=>{
             if(result.status === 200){
                 dispatch({
                     type: types.GET_PRODUCT_SUCCESS,
                     payload: {...result.data}
                 })
-                callback([...result.data.data.products])
+                callback({...result.data?.data})
             }else{
+                console.log('xxxxxxxxxxxxxxxxxx');
                 dispatch({
                     type: types.GET_PRODUCT_FAIL
                 })
@@ -34,14 +34,13 @@ const getAllProductPerCompany = (id, queriesData, callback = ()=>{}) => {
     return (dispatch) => {
         dispatch({type: types.GET_PRODUCT_PER_COMPANY})
         API.getAllProductPerCompany(id,queriesData)
-        // .then((response)=>response.json())
         .then((result=>{
             if(result.status === 200){
                 dispatch({ 
                     type: types.GET_PRODUCT_PER_COMPANY_SUCCESS,
                     payload: {...result.data}
                 })
-                callback([...result.data.data.products])
+                callback({...result.data.data})
             }else{
                 dispatch({
                     type: types.GET_PRODUCT_PER_COMPANY_FAIL

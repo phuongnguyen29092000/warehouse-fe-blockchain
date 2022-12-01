@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -15,6 +15,7 @@ import Container from "@material-ui/core/Container";
 import { useNavigate } from "react-router-dom";
 import { signup } from "redux/reducers/user/action";
 import { useDispatch } from "react-redux";
+import {ethers} from 'ethers';
 
 const useStyles = makeStyles(theme => ({
   "@global": {
@@ -33,7 +34,7 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: theme.palette.secondary.main
   },
   form: {
-    width: "100%", // Fix IE 11 issue.
+    width: "100%",
     marginTop: theme.spacing(3)
   },
   submit: {
@@ -45,22 +46,58 @@ export default function SignUp() {
   const classes = useStyles();
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const [valueAddress, setValueAddress] = useState('')
+  const [error, setError] = useState('')
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    if(data.get('password') !== data.get('confirmPassword')) {
+      setError('Không trùng khớp. Vui lòng xác nhận lại mật khẩu!')
+      return
+    }
     const body = {
       companyName: data.get('companyName'),
       walletAddress: data.get('walletAddress'),
       businessCode: data.get('businessCode'),
       userName: data.get('userName'),
       email: data.get('email'),
-      password: data.get('password')
+      password: data.get('password'),
     }
     dispatch(signup(body, (res)=> {
       if(res) navigate('/')
     }))
   };
+
+  const handleConnectMetamask = () => {
+    if(window.ethereum) {
+        window.ethereum.request({method: 'eth_requestAccounts'})
+            .then(res=> {
+                accountChangedHandler(res[0])
+            })     
+    } else {
+        alert('Vui lòng tải ví metamask để thanh toán!')
+        window.open(
+            'https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn',
+            '_blank'
+          );
+    }
+  }
+
+  const accountChangedHandler = (account) => {
+    setValueAddress(account)
+    getUserBalance(account);
+  }
+
+  const getUserBalance = (address) => {
+    window.ethereum.request({method: 'eth_getBalance', params: [address, 'latest']})
+        .then((balance)=> {
+            console.log(ethers.utils.formatEther(balance));
+        })
+  }
+
+  window?.ethereum?.on('accountsChanged', accountChangedHandler)
+
 
   return (
     <Container component="main" maxWidth="xs">
@@ -83,7 +120,6 @@ export default function SignUp() {
                 fullWidth
                 id="companyName"
                 label="Tên doanh nghiệp/công ty"
-                autoFocus
               />
             </Grid>
             <Grid item xs={12}>
@@ -94,8 +130,9 @@ export default function SignUp() {
                 required
                 fullWidth
                 id="walletAddress"
-                label="Địa chỉ ví"
-                autoFocus
+                label="Địa chỉ ví Metmask"
+                value={valueAddress}
+                onClick={handleConnectMetamask}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -136,13 +173,43 @@ export default function SignUp() {
                 variant="outlined"
                 required
                 fullWidth
+                id="phone"
+                label="Điện thoại liên hệ"
+                name="phone"
+                autoComplete="phone"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                variant="outlined"
+                required
+                fullWidth
                 name="password"
                 label="Mật khẩu"
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                onChange={()=> setError('')}
               />
             </Grid>
+            <Grid item xs={12}>
+              <TextField
+                variant="outlined"
+                required
+                fullWidth
+                name="password"
+                label="Xác nhận mật khẩu"
+                type="password"
+                id="comfirmPassword"
+                autoComplete="current-password"
+                onChange={()=> setError('')}
+              />
+            </Grid>
+            {
+              error && <Grid>
+                <span style={{fontSize: 15, color: 'red', marginLeft: 8}}>{error}</span>
+              </Grid>
+            }
           </Grid>
           <Button
             type="submit"
