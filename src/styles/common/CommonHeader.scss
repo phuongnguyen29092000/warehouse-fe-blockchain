@@ -1,0 +1,29 @@
+.common-header{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    background-color: #dfdfdf;
+    padding: 0 40px;
+    height: 102px;
+    .page-name{
+        h1{
+            color: #5584ac;
+        }
+    }
+    &__search-box{
+        input{
+            padding: 10px;
+        }
+    }
+    .block-account {
+        max-width: 150px;
+        .user-name {
+            font-size: 16px !important;
+            color: #292929;
+            font-weight: 600;
+            font-family: monospace !important;
+        }
+    }
+}

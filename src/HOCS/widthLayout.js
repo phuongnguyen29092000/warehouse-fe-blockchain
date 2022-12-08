@@ -1,5 +1,6 @@
+import CommonHeader from 'components/common/CommonHeader';
 import React, { useState } from 'react';
-// import SideBar from '../components/SideBar';
+import SideBar from '../components/SideBar';
 
 const WidthLayout = ({
     Component,
@@ -9,9 +10,9 @@ const WidthLayout = ({
     const [keySearch, setKeySearch] = useState('')
     return (
         <div className='layout-app'>
-            {/* <SideBar/> */}
+            <SideBar/>
             <div className='component'>
-                {/* {
+                {
                     showHeader && (
                         <div>
                             <CommonHeader
@@ -21,7 +22,7 @@ const WidthLayout = ({
                             />
                         </div>
                     )
-                } */}
+                }
                 <Component
                     Component = {Component}
                     showHeader = {showHeader}

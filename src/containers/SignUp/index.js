@@ -52,10 +52,10 @@ export default function SignUp() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    if(data.get('password') !== data.get('confirmPassword')) {
-      setError('Không trùng khớp. Vui lòng xác nhận lại mật khẩu!')
-      return
-    }
+    // if(data.get('password') !== data.get('confirmPassword')) {
+    //   setError('Không trùng khớp. Vui lòng xác nhận lại mật khẩu!')
+    //   return
+    // }
     const body = {
       companyName: data.get('companyName'),
       walletAddress: data.get('walletAddress'),
@@ -97,7 +97,6 @@ export default function SignUp() {
   }
 
   window?.ethereum?.on('accountsChanged', accountChangedHandler)
-
 
   return (
     <Container component="main" maxWidth="xs">

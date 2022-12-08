@@ -69,7 +69,7 @@ const CompanyInfomation = ({info}) => {
                         <Typography gutterBottom variant="body1" component="div" align='left' className="info-contact">
                             <LocationOnIcon fontSize="medium" htmlColor="#ee4d2d"/>
                             <span style={{color: 'rgba(0,0,0,.54)'}}>
-                                {info?.address?.detail || 'Quang Nam'}      
+                                {info?.address?.value || 'Quang Nam'}      
                             </span>
                         </Typography>
                     </Grid>

@@ -1,10 +1,11 @@
 import * as types from './types'
 import API from '../../../apis/OrderAPI'
+import { CheckExpiredToken } from 'utils/authUtil'
 // import useNotification from 'hooks/notification'
-// import { CheckExpiredToken } from 'ultis/authUtil'
 
 const getAllOrderByUser = (id, queriesData, callback = ()=>{}) => {
-    return (dispatch) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
         dispatch({type: types.GET_ORDER})
         API.getAllOrderByUser(id, queriesData)
         .then((result=>{
@@ -31,7 +32,8 @@ const getAllOrderByUser = (id, queriesData, callback = ()=>{}) => {
 
 
 const createOrder = (data, callback = ()=>{}) => {
-    return (dispatch) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
         dispatch({type: types.CREATE_ORDER})
         API.addOrder(data)
         .then((result=>{
@@ -57,7 +59,8 @@ const createOrder = (data, callback = ()=>{}) => {
 }
 
 const getOrderDetail = (id, callback = ()=>{}) => {
-    return (dispatch) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
         dispatch({type: types.GET_ORDER_DETAIL})
         API.getOrderById(id)
         .then((result=>{
@@ -82,10 +85,8 @@ const getOrderDetail = (id, callback = ()=>{}) => {
     }
 }
 
-
 export {
     getAllOrderByUser,
     createOrder,
     getOrderDetail
-    // updateOrder,
 }

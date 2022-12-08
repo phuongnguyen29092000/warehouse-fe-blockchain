@@ -27,6 +27,20 @@ const deleteCategory = (id) => {
   return axiosClient.delete(url, {headers: getHeaderWithToken()});
 }
 
+const addSubCategory = (data) => {
+  const url = '/sub-category/create';
+  return axiosClient.post(url, data, {headers: getHeaderWithToken()})
+}
+
+const updateSubCategory = (id, data) => {
+  const url = `/sub-category/${id}`
+  return axiosClient.put(url, data, {headers: getHeaderWithToken()})
+}
+
+const deleteSubCategory = (id) => {
+  const url = `/sub-category/${id}`;
+  return axiosClient.delete(url, {headers: getHeaderWithToken()});
+}
 
 export default {
   addCategory,
@@ -34,4 +48,7 @@ export default {
 	getCateById,
 	updateCategory,
 	deleteCategory,
+  addSubCategory,
+  updateSubCategory,
+  deleteSubCategory
 }

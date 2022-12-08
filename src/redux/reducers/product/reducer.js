@@ -128,60 +128,87 @@ export const reducer = (state = initialState, action) => {
     case types.CREATE_PRODUCT: {
       return {
         ...state,
-        loading: true
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: true,
+        },
       }
     }
     case types.CREATE_PRODUCT_FAIL: {
       return {
         ...state,
-        loading: false
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: false,
+        },
       }
     }
     case types.CREATE_PRODUCT_SUCCESS: {
       return {
         ...state,
-        products: [...state.product, action.payload],
-        loading: false
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          data:  
+          [
+            action.payload,
+            ...state.productsPerCompany?.data,
+          ],
+          totalCount: state.totalCount + 1,
+          loading: false,
+        },
       }
     }
-
     case types.UPDATE_PRODUCT: {
       return {
         ...state,
-        loading: true
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: true,
+        },
       }
     }
     case types.UPDATE_PRODUCT_FAIL: {
       return {
         ...state,
-        loading: false
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: false,
+        },
       }
     }
     case types.UPDATE_PRODUCT_SUCCESS: {
-      let listTemp = [...state?.products];
+      let listTemp = [...state?.productsPerCompany?.data];
       let indexUpdate = listTemp?.map((item) => item._id).indexOf(action.payload.id);
-      let result = listTemp?.splice(indexUpdate, 1, action.payload.data);
+      listTemp?.splice(indexUpdate, 1, action.payload.data);
       return {
         ...state,
-        product: listTemp,
-        loading: false
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          data: listTemp,
+          loading: false,
+        },
       }
     }
     case types.DELETE_PRODUCT: {
       return {
         ...state,
-        loading: true
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: true,
+        },
       }
     }
     case types.DELETE_PRODUCT_FAIL: {
       return {
         ...state,
-        loading: false,
-        error: action.payload
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          loading: false,
+        },
       }
     }
     case types.DELETE_PRODUCT_SUCCESS: {
-      let listTemp = [...state?.product];
+      let listTemp = [...state?.productsPerCompany?.data];
       return {
         ...state,
         products: listTemp?.filter((item) =>item._id.toString() !== action.payload),

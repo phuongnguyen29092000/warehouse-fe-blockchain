@@ -8,6 +8,7 @@ import SpinnerLoading from '../../components/Spinner';
 import EmptyProductIcon from '../../public/empty-product.jpg'
 
 const ProductResult = ({queriesData, setQueriesData, dataResult, loading, totalCount, setOpenDrawerCart}) => {
+    const dispatch = useDispatch()
     // const { search } = useLocation();
     // let searchParagram = new URLSearchParams(search);
     // useEffect(() => {
@@ -33,7 +34,7 @@ const ProductResult = ({queriesData, setQueriesData, dataResult, loading, totalC
     // }, [search])
     useEffect(() => {
         document.title = 'Kết quả'
-        // dispatch(setActiveUrl(''))
+        dispatch(setActiveUrl(''))
     }, [])
 
     return (

@@ -18,7 +18,7 @@ import { debounce } from "lodash";
 import SearchIcon from '@mui/icons-material/Search';
 import { useState } from "react";
 
-const FilterProduct = ({ queriesData, setQueriesData }) => {
+const FilterProduct = ({ queriesData, setQueriesData, manage = false}) => {
   const [search, setSearch] = useState('')
   const { register, handleSubmit, reset, control } = useForm();
   const onHandleSubmit = (data) => {
@@ -176,6 +176,8 @@ const FilterProduct = ({ queriesData, setQueriesData }) => {
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
                 value={queriesData?.limit}
+                style={{fontSize: 15, width:50}}
+                variant='standard'
                 onChange={(e) => {
                   setQueriesData({ ...queriesData, limit: e.target.value, skip: 1 });
                 }}
@@ -191,7 +193,7 @@ const FilterProduct = ({ queriesData, setQueriesData }) => {
                 id="standard-basic" 
                 label="Tên sản phẩm" 
                 variant="standard" 
-                style={{width: '100%'}}
+                style={{width: '100%',maxWidth: '250px'}}
                 value={search}
                 className={search && 'hidden-label'}
                 InputProps={{

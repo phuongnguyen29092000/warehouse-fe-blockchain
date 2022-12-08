@@ -26,10 +26,24 @@ const getUserBySearchKey = (searchKey) => {
     return axiosClient.get(url);
 }
 
+const updateUserInfo = (id, data) => {
+    console.log({data});
+    let url = `/user/${id}`
+    return axiosClient.put(url, data, { headers: getHeaderWithToken() });
+}
+
+const updateAdminInfo = (id, data) => {
+    console.log({data});
+    let url = `/admin/${id}`
+    return axiosClient.put(url, data, { headers: getHeaderWithToken() });
+}
+
 export default {
     signup,
     getAllUser,
     setActiveUser,
     getUserById,
-    getUserBySearchKey
+    getUserBySearchKey,
+    updateAdminInfo,
+    updateUserInfo
 }

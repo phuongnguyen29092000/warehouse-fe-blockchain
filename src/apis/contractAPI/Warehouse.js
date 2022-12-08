@@ -19,9 +19,10 @@ const transactionReceiptAsync = async function (txnHash, resolve, reject) {
 	}
 };
 
-const addOrderToWarehouse = (contract, buyer, seller, totalPrice, totalProduct, details) => {
+const addOrderToWarehouse = (contract, buyer, seller, totalPrice, shippingPrice, totalProduct, dealine) => {
+	console.log(contract, buyer, seller, totalPrice, shippingPrice, totalProduct, dealine);
 	return contract.methods
-		.addOrder(buyer, seller, totalPrice, totalProduct, details)
+		.addOrder(seller, totalPrice, totalProduct, shippingPrice, dealine)
 		.send({ from: buyer, gas: 3500000 }, function (err, transactionHash) {
 			if (!err)
 				toast.promise(

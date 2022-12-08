@@ -1,6 +1,6 @@
 import Spinner from 'components/Spinner'
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Select, {components} from 'react-select'
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
@@ -8,48 +8,18 @@ import { debounce } from 'lodash';
 import UserAPI from '../../apis/UserAPI'
 
 const SearchBox = () => {
+  const navigate = useNavigate();
   const [result, setResult] = useState([])
   const [loading, setLoading] = useState(false)
   const [valueInput, setValueInput] = useState('')
+  const [valueInput1, setValueInput1] = useState('')
   const [selectedOption, setSelectedOption] = useState('')
-  const navigate = useNavigate();
+  const {id} = useParams()
+  const [isSearch, setIsSearch] = useState(false)
   
-  useEffect(()=> {
-    setValueInput('')
-  }, [])
-
-  useEffect(()=> {
-    // debounce(async()=> {
-      console.log({valueInput});
-      if(!valueInput) {
-        setResult([])
-        return
-      }
-      try {
-        UserAPI.getUserBySearchKey(valueInput).then((res)=> {
-          if(res.status === 200){
-            setResult(res?.data?.users.map((user)=> {
-              return {
-                label: user.companyName,
-                value: user._id
-              }
-            }))
-          } else {
-            setResult(false)
-          }
-        })
-      } catch (error) {
-      }
-    // }, 400)
-  }, [valueInput])
-  
-  const handleSearch = async(value) => {
-    if(!value) {
-      setResult([])
-      return
-    }
+  const handleSearch = async() => {
     try {
-      await UserAPI.getUserBySearchKey(value).then((res)=> {
+      await UserAPI.getUserBySearchKey(valueInput).then((res)=> {
         if(res.status === 200){
           setResult(res?.data?.users.map((user)=> {
             return {
@@ -57,13 +27,39 @@ const SearchBox = () => {
               value: user._id
             }
           }))
+          setIsSearch(true)
         } else {
-          setResult(false)
+          setResult([])
         }
       })
     } catch (error) {
     }
   }
+  const IndicatorsContainer = props => (
+    <components.IndicatorsContainer {...props}>
+      <div className='search-header-button' onClick={async(e)=> {
+          await handleSearch()
+        }}>
+          <SearchIcon htmlColor='#fff' fontSize='medium'/>
+          <span style={{color: '#fff', marginLeft: 3}}>Tìm kiếm</span>
+          {
+            isSearch && 
+            <div className='close'
+              onClick={(e)=> {
+                e.stopPropagation()
+                setResult([])
+                setValueInput('')
+                setSelectedOption(null)
+                setIsSearch(false)
+                navigate('/')
+              }}
+            >
+              <CloseIcon htmlColor='#292929'/>
+            </div>
+          }
+        </div>
+    </components.IndicatorsContainer>
+);
 
   return (
       <div className="search-box" style={{ width: "800px" }}>
@@ -72,22 +68,27 @@ const SearchBox = () => {
             name="search"
             key='search'
             options={result}
+            // isDisabled={!!id}
             onChange={(option) => {
               setResult([])
-              setSelectedOption(option.value)
+              setSelectedOption(option)
               navigate(`/kho/${option.value}`)
             }}
             placeholder="Tìm kiếm công ty/doanh nghiệp"
-            onInputChange={(e)=> {
+            onInputChange={(e)=> {        
               setValueInput(e)
             }}
-            menuIsOpen={valueInput?.length}
-            selec 
+            onKeyDown={(e)=> {
+              if(e.key === 'Enter') handleSearch()
+              else return
+            }}
+            menuIsOpen={result?.length}
+            value={selectedOption}
             inputValue={valueInput}
             styles={{
               container: (provided) => ({
                 ...provided,
-                width: 650
+                width: 750
               }),
               control: (provided, state) => ({
                 ...provided,
@@ -96,8 +97,7 @@ const SearchBox = () => {
                 minHeight: '55px',
                 height: '55px',
                 boxShadow: state.isFocused ? null : null,
-                borderTopLeftRadius: 35,
-                borderBottomLeftRadius: 35,
+                borderRadius: 35,
                 '&:hover': {
                   border: '1px solid #FF6A00',
               }
@@ -121,38 +121,15 @@ const SearchBox = () => {
                 color: '#292929',
                 cursor: 'pointer'
               }),
-              indicatorSeparator: (provided) => ({
-                ...provided,
-                display: 'none',
-              }),
-              dropdownIndicator: (provided) => ({
-                ...provided,
-                display: "none"
-              }),
               singleValue: (provided) => ({
                 ...provided,
                 textAlign: 'left'
               })
             }}
+            components={{
+              IndicatorsContainer
+            }}
           />
-          <div className='search-header-button' onClick={handleSearch}>
-            <SearchIcon htmlColor='#fff' fontSize='medium'/>
-            <span style={{color: '#fff', marginLeft: 3}}>Tìm kiếm</span>
-            {
-              selectedOption && 
-              <div className='close'
-                onClick={(e)=> {
-                  e.stopPropagation()
-                  setResult([])
-                  setValueInput('')
-                  setSelectedOption('')
-                  navigate('/')
-                }}
-              >
-                <CloseIcon htmlColor='#292929'/>
-              </div>
-            }
-          </div>
         </div>
       </div>
   )

@@ -16,6 +16,7 @@ contract Warehouse {
         address owner,
         address seller,
         uint256 totalPrice,
+        uint256 shippingPrice,
         uint256 totalProduct,
         uint256 dealine
     );
@@ -24,15 +25,16 @@ contract Warehouse {
         return owner;
     }
 
-    function addOrder(address buyer, address seller, uint256 totalPrice, uint256 totalProduct, uint256 deadline) public payable returns (bool) {
+    function addOrder(address seller, uint256 totalPrice, uint256 totalProduct, uint256 shippingPrice, uint256 deadline) public payable returns (bool) {
         require(totalPrice > 0, "totalPrice must be greater than zero");
-        Order order = new Order(buyer, seller, totalPrice, totalProduct, deadline);
+        Order order = new Order(msg.sender, seller, totalPrice, shippingPrice, totalProduct, deadline);
         listOrder.push(address(order));
         emit createOrder(
             order.getAddress(),
             msg.sender,
             seller,
-            totalPrice,
+            totalPrice, 
+            shippingPrice,
             totalProduct,
             deadline
         );

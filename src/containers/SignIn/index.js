@@ -20,7 +20,6 @@ import useNotification from "hooks/notification";
 import { useWeb3React } from "@web3-react/core";
 import { injected } from "../../components/Wallet";
 
-
 function Copyright(props) {
   return (
     <Typography
@@ -54,7 +53,7 @@ export default function SignIn() {
   const classes = useStyles();
   const dispatch = useDispatch()
   const navigate = useNavigate()
-	const { active, activate, error } = useWeb3React();
+	const {activate, error, active } = useWeb3React();
 
   const accountChangedHandler = (account) => {
     console.log(account);
@@ -74,15 +73,22 @@ export default function SignIn() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     dispatch(login(data, (res)=> {
-      if(res) {
+      useNotification.Success({
+        title: "Thành công",
+        message:"Đăng nhập thành công!",
+        duration: 3000
+      })
+      if(res?.role === 'user') {
         if (active) {
-          return;
+          return
         }
         try {
-          activate(injected);
-        } catch (ex) {
-          console.log(ex);
+          activate(injected)
+          console.log('abc');
+        } catch (e) {
+          console.log(e);
         }
+        
         // window.ethereum.request({method: 'eth_requestAccounts'})
         //   .then(res=> {
         //     accountChangedHandler(res[0])

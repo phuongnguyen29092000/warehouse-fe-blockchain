@@ -8,6 +8,7 @@ contract Order {
         address buyer;
         address seller;
         uint256 totalPrice;
+        uint256 shippingPrice;
         uint256 totalProduct;
         order_status state;
         uint256 purchaseTime;
@@ -17,6 +18,7 @@ contract Order {
         uint256 returnTime;
         uint256 returnedTime;
         uint256 dealine;
+        uint256 balance;
     }
     
     struct TransactionOrder {
@@ -38,6 +40,7 @@ contract Order {
     address payable owner;
     address payable seller;
     uint256 public totalPrice;
+    uint256 public shippingPrice;
     uint256 public totalProduct;
 
     uint256 public purchaseTime;
@@ -47,7 +50,7 @@ contract Order {
     uint256 public returnTime;
     uint256 public returnedTime;
 
-    uint256 public dealine;
+    uint256 public deadline;
 
     TransactionOrder[] public transactionOrders;
     order_status public state;
@@ -56,15 +59,16 @@ contract Order {
         address _ownerAddress,
         address _seller,
         uint256 _totalPrice,
+        uint256 _shippingPrice,
         uint256 _totalProduct,
         uint256 _deadline
     ) {
         owner = payable(_ownerAddress);
         seller = payable(_seller);
         totalPrice = _totalPrice;
+        shippingPrice = _shippingPrice;
         totalProduct = _totalProduct;
-        dealine = _deadline;
-        state = order_status.PENDING;
+        deadline = _deadline;
     }
 
     event confirmPurchaseEvent(
@@ -95,8 +99,10 @@ contract Order {
 
     event confirmReturnedOrderEvent(
         address from,
-        address payable to,
-        uint256 value,
+        address payable toBuyer,
+        uint256 valueToBuyer,
+        address payable toSeller,
+        uint256 valueToSeller,
         order_status state
     );
 
@@ -122,7 +128,12 @@ contract Order {
             msg.sender.balance > msg.value,
             "Balance of account is not enough"
         );
+        require(
+            msg.value == totalPrice,
+            "Value must be equal totalPrice"
+        );
         purchaseTime = block.timestamp;
+        state = order_status.PENDING;
         TransactionOrder memory transaction = TransactionOrder(
             getAddress(),
             msg.value,
@@ -139,7 +150,7 @@ contract Order {
         );
     }
 
-     function confirmOrder() public payable {
+    function confirmOrder(uint256 _newDeadline) public payable {
         require(msg.sender == seller, "Not permission");
         require(
             state == order_status.PENDING,
@@ -147,6 +158,7 @@ contract Order {
         );
         state = order_status.CONFIRMED;
         confirmedTime = block.timestamp;
+        deadline = _newDeadline;
         TransactionOrder memory transaction = TransactionOrder(
             msg.sender,
             0,
@@ -182,6 +194,63 @@ contract Order {
         );
     }
 
+    function handleWithDrawForBuyerWhenSellerNotConfirm() public payable {
+        require((block.timestamp)*1000 > deadline, "Present time must be greater deadline");
+        require(msg.sender == owner, "Not permission");
+        require(
+            state == order_status.PENDING,
+            "Order status must be status PENDING"
+        );
+        require(
+            address(this).balance > 0,
+            "Balance of order is not enough"
+        );
+        owner.transfer(address(this).balance);
+        state = order_status.CANCEL;
+        cancelTime = block.timestamp;
+        TransactionOrder memory transaction = TransactionOrder(
+            owner,
+            totalPrice,
+            state,
+            cancelTime
+        );
+        transactionOrders.push(transaction);
+
+        emit confirmCancelOrderEvent(
+            order_status.CANCEL
+        );
+    }
+
+    function handleWithDrawForSellerWhenDeliveryExpired() public payable {
+        require((block.timestamp)*1000 > deadline, "Present time must be greater deadline");
+        require(msg.sender == seller, "Not permission");
+        require(
+            state == order_status.CONFIRMED,
+            "Order status must be status CONFIRMED"
+        );
+        require(
+            address(this).balance > 0,
+            "Balance of order is not enough"
+        );
+        seller.transfer(address(this).balance);
+        state = order_status.SUCCESS;
+        purchaseTime = block.timestamp;
+        TransactionOrder memory transaction = TransactionOrder(
+            seller,
+            totalPrice,
+            state,
+            purchaseTime
+        );
+        transactionOrders.push(transaction);
+
+        emit confirmPaymentToSellerEvent(
+            address(this),
+            seller,
+            totalPrice,
+            order_status.SUCCESS
+        );
+    }
+
     function confirmPaymentToSeller() public payable {
         require(msg.sender == owner, "Not permission");
         require(
@@ -212,7 +281,7 @@ contract Order {
         );
     }
 
-    function confirmReturnOrder() public payable {
+    function confirmReturnOrder(uint256 _newDeadline) public payable {
         require(msg.sender == owner, "Not permission");
         require(
             state == order_status.CONFIRMED,
@@ -220,6 +289,7 @@ contract Order {
         );
         state = order_status.RETURN;
         returnTime = block.timestamp;
+        deadline = _newDeadline;
         TransactionOrder memory transaction = TransactionOrder(
             msg.sender,
             0,
@@ -243,21 +313,79 @@ contract Order {
             state == order_status.RETURN,
             "Order status must be status RETURN"
         );
-        owner.transfer(address(this).balance);
+
         state = order_status.RETURNED;
         returnedTime = block.timestamp;
-
-        TransactionOrder memory transaction = TransactionOrder(
+        // return total price to buyer
+        owner.transfer(address(this).balance - shippingPrice);
+        TransactionOrder memory transactionReturnTotalPrice = TransactionOrder(
             owner,
             totalPrice,
             state,
             returnedTime
         );
-        transactionOrders.push(transaction);
+        transactionOrders.push(transactionReturnTotalPrice);
+
+        // return shipping price to seller
+        seller.transfer(shippingPrice);
+        TransactionOrder memory transactionReturnShippingPrice = TransactionOrder(
+            seller,
+            shippingPrice,
+            state,
+            returnedTime
+        );
+        transactionOrders.push(transactionReturnShippingPrice);
+
         emit confirmReturnedOrderEvent(     
             address(this),
             owner,
+            totalPrice - shippingPrice,
+            seller,
+            shippingPrice,
+            order_status.RETURNED
+        );
+    }
+
+    function handleWithDrawForBuyerWhenReturnExpired() public payable {
+        require((block.timestamp)*1000 > deadline, "Present time must be greater deadline");
+        require(msg.sender == owner, "Not permission");
+        require(
+            state == order_status.RETURN,
+            "Order status must be status RETURN"
+        );
+        require(
+            address(this).balance > 0,
+            "Balance of order is not enough"
+        );
+
+        state = order_status.RETURNED;
+        returnedTime = block.timestamp;
+        // return total price to buyer
+        owner.transfer(address(this).balance - shippingPrice);
+        TransactionOrder memory transactionReturnTotalPrice = TransactionOrder(
+            owner,
             totalPrice,
+            state,
+            returnedTime
+        );
+        transactionOrders.push(transactionReturnTotalPrice);
+
+        // return shipping price to seller
+        seller.transfer(shippingPrice);
+        TransactionOrder memory transactionReturnShippingPrice = TransactionOrder(
+            seller,
+            shippingPrice,
+            state,
+            returnedTime
+        );
+        transactionOrders.push(transactionReturnShippingPrice);
+
+        emit confirmReturnedOrderEvent(     
+            address(this),
+            owner,
+            totalPrice - shippingPrice,
+            seller,
+            shippingPrice,
             order_status.RETURNED
         );
     }
@@ -269,6 +397,7 @@ contract Order {
                 owner,
                 seller,
                 totalPrice,
+                shippingPrice,
                 totalProduct,
                 state,
                 purchaseTime, 
@@ -277,7 +406,8 @@ contract Order {
                 paymentTime,
                 returnTime,
                 returnedTime,
-                dealine
+                deadline,
+                getBalance()
             );
     }
 

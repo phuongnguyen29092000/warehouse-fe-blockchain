@@ -1,7 +1,8 @@
 import * as types from './types'
 import API from '../../../apis/ProductAPI'
+import useNotification from 'hooks/notification'
 // import useNotification from 'hooks/notification'
-// import { CheckExpiredToken } from 'ultis/authUtil'
+import { CheckExpiredToken } from 'utils/authUtil'
 
 const getAllProductByQueries = (queriesData, callback = ()=>{}) => {
     return (dispatch) => {
@@ -15,7 +16,6 @@ const getAllProductByQueries = (queriesData, callback = ()=>{}) => {
                 })
                 callback({...result.data?.data})
             }else{
-                console.log('xxxxxxxxxxxxxxxxxx');
                 dispatch({
                     type: types.GET_PRODUCT_FAIL
                 })
@@ -86,9 +86,7 @@ const getProductById = (id, callback = ()=>{}) => {
 const getSimilarProduct = (queriesData, callback = ()=>{}) => {
     return (dispatch) => {
         dispatch({type: types.GET_PRODUCT_SIMILAR})
-        console.log(queriesData);
         API.getAllProduct(queriesData)
-        // .then((response)=>response.json())
         .then((result=>{
             if(result.status === 200){
                 dispatch({
@@ -111,120 +109,123 @@ const getSimilarProduct = (queriesData, callback = ()=>{}) => {
     }
 }
 
-// const createCategory = (data, callback = ()=>{}) => {
-//     return async(dispatch) => {
-//         await CheckExpiredToken()
-//         dispatch({type: types.CREATE_CATEGORY})
-//         API.createCATEGORY(data)
-//         // .then((response)=>response.json())
-//         .then((result=>{
-//             if(result.status === 201){
-//                 dispatch({
-//                     type: types.CREATE_CATEGORY_SUCCESS,
-//                     payload: {...result.data.CATEGORY}
-//                 })
-//                 callback()
-//                 useNotification.Success({
-//                     title: "Thành công!",
-//                     message:"Bạn đã thêm loại địa hình thành công!"
-//                 })
-//             }else{
-//                 dispatch({
-//                     type: types.CREATE_CATEGORY_FAIL
-//                 })
-//             }
-//         }))
-//         .catch((error)=>{
-//             useNotification.Error({
-//                 title: "Lỗi!",
-//                 message:"Server Error!"
-//             })
-//             dispatch({
-//                 type: types.CREATE_CATEGORY_FAIL
-//             })
-//         })
-//     }
-// }
+const addProduct = (data, callback=()=>{}) =>{
+    return async(dispatch) => {
+        await CheckExpiredToken()
+        dispatch({type: types.CREATE_PRODUCT})
+        API.addProduct(data)
+        .then((result)=>{
+            if(result.status === 201){
+                dispatch({
+                    type: types.CREATE_PRODUCT_SUCCESS,
+                    payload: result.data.product
+                })
+                callback()
+                useNotification.Success({
+                    title: "Thành công!",
+                    message:"Bạn đã thêm sản phẩm thành công!"
+                })
+            }else{
+                dispatch({
+                    type: types.CREATE_PRODUCT_FAIL
+                })
+            }
+        })
+        .catch((error)=>{
+            console.log({error});
+            dispatch({
+                type: types.CREATE_PRODUCT_FAIL
+            })
+            useNotification.Error({
+                title: "Lỗi!",
+                message:"Server Error!"
+            })
+        })
+    }
+}
 
-// const updateCategory = (id, data, callback = ()=>{}) => {
-//     return async(dispatch) => {
-//         await CheckExpiredToken()
-//         dispatch({type: types.UPDATE_CATEGORY})
-//         API.updateCATEGORY(id, data)
-//         .then((result=>{
-//             if(result.status === 200){
-//                 dispatch({
-//                     type: types.UPDATE_CATEGORY_SUCCESS,
-//                     payload: {
-//                         id: id,
-//                         data: result.data.CATEGORY
-//                     }
-//                 })
-//                 useNotification.Success({
-//                     title: "Thành công!",
-//                     message:"Bạn đã cập nhật loại địa hình thành công!"
-//                 })
-//                 callback()
-//             }else{
-//                 dispatch({
-//                     type: types.GET_CATEGORY_FAIL
-//                 })
-//             }
-//         }))
-//         .catch((error)=>{
-//             useNotification.Error({
-//                 title: "Lỗi!",
-//                 message:"Server Error!"
-//             })
-//             dispatch({
-//                 type: types.GET_CATEGORY_FAIL
-//             })
-//         })
-//     }
-// }
+const updateProduct = (id, data, callback=()=>{}) =>{
+    return async(dispatch) => {
+        await CheckExpiredToken()
+        dispatch({type: types.UPDATE_PRODUCT})
+        API.updateProduct(id, data)
+        .then((result)=>{
+            if(result.status === 200){
+                dispatch({
+                    type: types.UPDATE_PRODUCT_SUCCESS,
+                    payload: {
+                        id: id,
+                        data: result.data.product
+                    }
+                })
+                callback()
+                useNotification.Success({
+                    title: "Thành công!",
+                    message:"Bạn đã cập nhật sản phẩm thành công!"
+                })
+            }else{
+                dispatch({
+                    type: types.UPDATE_PRODUCT_FAIL
+                })
+            }
+        })
+        .catch((error)=>{
+            console.log({error});
+            dispatch({
+                type: types.UPDATE_PRODUCT_FAIL
+            })
+            useNotification.Error({
+                title: "Lỗi!",
+                message:"Server Error!"
+            })
+        })
+    }
+}
 
-// const deleteCategory = (id, callback = ()=>{}) => {
-//     return async(dispatch) => {
-//         await CheckExpiredToken()
-//         dispatch({type: types.DELETE_CATEGORY})
-//         API.deleteCATEGORY(id)
-//         .then((result=>{
-//             if(result.status === 204){
-//                 dispatch({
-//                     type: types.DELETE_CATEGORY_SUCCESS,
-//                     payload: id
-//                 })
-//                 useNotification.Success({
-//                     title: "Thành công!",
-//                     message:"Bạn đã xóa loại địa hình thành công!"
-//                 })
-//                 callback()
-//             } 
-//             else{
-//                 dispatch({
-//                     type: types.DELETE_CATEGORY_FAIL
-//                 })
-//             }
-//         }))
-//         .catch((error)=>{
-//             dispatch({
-//                 type: types.DELETE_CATEGORY_FAIL,
-//                 payload: error
-//             })
-//             useNotification.Error({
-//                 title: "Lỗi",
-//                 message:`Có tour đang sử dụng loại địa hình này!\n Không thể xóa`
-//             })
-//         })
-//     }
-// }
+const deleteProduct = (id, callback = ()=>{}) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
+        dispatch({type: types.DELETE_PRODUCT})
+        API.deleteProduct(id)
+        .then((result)=>{
+            if(result.status === 204){
+                dispatch({
+                    type: types.DELETE_PRODUCT_SUCCESS,
+                    payload: id
+                })
+                callback()
+                useNotification.Success({
+                    title:"Thành công!",
+                    message:"Xóa sản phẩm thành công!"
+                })
+            }else{
+                dispatch({
+                    type: types.DELETE_PRODUCT_FAIL
+                })
+                useNotification.Error({
+                    title:"Lỗi!",
+                    message:"Server Error!"
+                })
+            }
+        })
+        .catch((error)=>{
+            dispatch({
+                type: types.DELETE_PRODUCT_FAIL
+            })
+            useNotification.Error({
+                title:"Lỗi!",
+                message:"Server Error!"
+            })
+        })
+    }
+}
 
 export {
     getAllProductByQueries,
     getProductById,
     getSimilarProduct,
-    getAllProductPerCompany
-    // createCategory,
-    // updateCategory,
-    // deleteCategory
+    getAllProductPerCompany,
+    addProduct,
+    updateProduct,
+    deleteProduct
 }

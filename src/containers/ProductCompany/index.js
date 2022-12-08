@@ -18,7 +18,7 @@ function ProductCompany() {
     const [queriesData, setQueriesData] = useState(DEFAULT_PARAMS)
     const [openDrawerCart, setOpenDrawerCart] = useState(false)
     const dispatch = useDispatch()
-	const { account } = useSelector((store)=> store.user)
+	const { accountUser } = useSelector((store)=> store.user)
     const { productsPerCompany } = useSelector((store) => store.product)
     const [companyInfo, setCompanyInfo] = useState({})
 
@@ -35,12 +35,7 @@ function ProductCompany() {
         dispatch(getAllProductPerCompany(
             id,
             queriesData, 
-            (res)=> {
-            // if(res) {
-            //     setData(res?.products)
-            //     setTotalCount(res?.count)
-            // }
-        }))
+           ))
     }, [queriesData])
 
     return (

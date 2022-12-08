@@ -15,14 +15,17 @@ import { useDispatch, useSelector } from "react-redux";
 import useNotification from "hooks/notification";
 import { useWeb3React } from "@web3-react/core";
 import LoginIcon from '@mui/icons-material/Login';
+import { ROUTE_WAREHOUSE_COMPANY, ROUTE_MANAGE_OWNER} from 'route/type'
+import { injected } from "components/Wallet";
+import ConvertToImageURL from "LogicResolve/ConvertToImageURL";
 
 const Header = () => {
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { account } = useSelector((store) => store.user)
-	const { active, deactivate } = useWeb3React();
+  const { accountUser } = useSelector((store) => store.user)
+	const { active, deactive, account } = useWeb3React();
 
   const handleChange = (event) => {
     setAuth(event.target.checked);
@@ -118,7 +121,7 @@ const Header = () => {
           </div>
           <div style={{ marginLeft: 20 }}>
             {
-              !Object.keys(account)?.length ?
+              !Object.keys(accountUser)?.length ?
                 <Link style={{ textDecoration: "none", width: 90 }} to={"/dang-nhap"}>
                   <LoginIcon fontSize="large" htmlColor="gray"/>
                 </Link>
@@ -130,9 +133,14 @@ const Header = () => {
                   aria-haspopup="true"
                   onClick={handleMenu}
                   color="default"
-                  style={{ background: "rgb(233 230 230)" }}
+                  style={{ background: "rgb(233 230 230)", padding: 0}}
                 >
-                  <AccountCircle sx={{ width: 30, height: 30 }} />
+                  {
+                    accountUser?.photoUrl ? 
+                    <img src={ConvertToImageURL(accountUser?.photoUrl)} style={{width: 50, height: 50, borderRadius: '50%'}}/>
+                    : 
+                  <AccountCircle sx={{ width: 50, height: 50 }} />
+                  }
                 </IconButton>
                 <Menu
                   id="menu-appbar"
@@ -149,15 +157,23 @@ const Header = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <MenuItem onClick={handleClose}>Tài khoản</MenuItem>
                   <MenuItem onClick={()=> {
-                    dispatch(logout((res)=> {
+                    if(accountUser.role === 'user') {
+                      navigate(ROUTE_WAREHOUSE_COMPANY)
+                    } else navigate(ROUTE_MANAGE_OWNER)
+                    handleClose()
+                  }}>Tài khoản</MenuItem>
+                  <MenuItem onClick={()=> {
+                    dispatch(logout(async(res)=> {
                       if(res){
-                        console.log('success');
-                        deactivate()
+                        try {
+                          deactive();
+                          console.log({active});
+                        } catch (e) {
+                          console.log(e);
+                        }
                       }
                     }))
-                    deactivate()
                     handleClose()
                     navigate('/')
                   }}>Đăng xuất</MenuItem>

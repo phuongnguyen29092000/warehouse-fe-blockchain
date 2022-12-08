@@ -68,27 +68,6 @@ export const reducer = (state = initialState, action) => {
         loading: false
       }
     }
-    case types.DELETE_CATEGORY: {
-      return {
-        ...state,
-        loading: true
-      }
-    }
-    case types.DELETE_CATEGORY_FAIL: {
-      return {
-        ...state,
-        loading: false,
-        error: action.payload
-      }
-    }
-    case types.DELETE_CATEGORY_SUCCESS: {
-      let listTemp = [...state?.categories];
-      return {
-        ...state,
-        categories: listTemp?.filter((item) => item._id.toString() !== action.payload),
-        loading: false,
-      };
-    }
 
     default:
       return state

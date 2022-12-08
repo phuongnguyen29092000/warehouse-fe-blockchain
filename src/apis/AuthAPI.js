@@ -7,6 +7,11 @@ const login = (data) => {
     return axiosClient.post(url, {email: data.get('email'), password: data.get("password")})
 }
 
+const changePass = (data) => {
+    let url = '/auth/changepass'
+    return axiosClient.post(url, data, {headers: getHeaderWithToken()})
+}
+
 const refreshToken = (data) => {
     let url = '/auth/refresh-tokens'
     return axiosClient.post(url, data)
@@ -20,5 +25,6 @@ const logout = () => {
 export default {
     login,
     refreshToken,
-    logout
+    logout,
+    changePass
 }

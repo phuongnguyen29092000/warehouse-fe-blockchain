@@ -41,9 +41,9 @@ const confirmPurchase = (contract, account, totalPrice) => {
 		);
 };
 
-const confirmDeliveryOrder = (contract, account) => {
+const confirmDeliveryOrder = (contract, account, newDeadline) => {
     return contract.methods
-		.confirmOrder()
+		.confirmOrder(newDeadline)
 		.send(
 			{ from: account, gas: 3500000 },
 			function (err, transactionHash) {
@@ -104,9 +104,51 @@ const confirmPaymentToSeller = (contract, account) => {
 		);
 }
 
-const confirmReturnOrder = (contract, account) => {
+const handleWithDrawForBuyerWhenSellerNotConfirm = (contract, account) => {
     return contract.methods
-		.confirmReturnOrder()
+		.handleWithDrawForBuyerWhenSellerNotConfirm()
+		.send(
+			{ from: account, gas: 3500000 },
+			function (err, transactionHash) {
+				if (!err)
+					toast.promise(
+						new Promise(function (resolve, reject) {
+							transactionReceiptAsync(transactionHash, resolve, reject);
+						}),
+						{
+							pending: "Transaction pending",
+							success: "Transaction confirm",
+							error: "Transaction rejected",
+						}
+					);
+			}
+		);
+}
+
+const handleWithDrawForSellerWhenDeliveryExpired = (contract, account) => {
+    return contract.methods
+		.handleWithDrawForSellerWhenDeliveryExpired()
+		.send(
+			{ from: account, gas: 3500000 },
+			function (err, transactionHash) {
+				if (!err)
+					toast.promise(
+						new Promise(function (resolve, reject) {
+							transactionReceiptAsync(transactionHash, resolve, reject);
+						}),
+						{
+							pending: "Transaction pending",
+							success: "Transaction confirm",
+							error: "Transaction rejected",
+						}
+					);
+			}
+		);
+}
+
+const confirmReturnOrder = (contract, account, newDeadline) => {
+    return contract.methods
+		.confirmReturnOrder(newDeadline)
 		.send(
 			{ from: account, gas: 3500000 },
 			function (err, transactionHash) {
@@ -146,6 +188,27 @@ const confirmReturnedOrder = (contract, account) => {
 		);
 }
 
+const handleWithDrawForBuyerWhenReturnExpired = (contract, account) => {
+    return contract.methods
+		.handleWithDrawForBuyerWhenReturnExpired()
+		.send(
+			{ from: account, gas: 3500000 },
+			function (err, transactionHash) {
+				if (!err)
+					toast.promise(
+						new Promise(function (resolve, reject) {
+							transactionReceiptAsync(transactionHash, resolve, reject);
+						}),
+						{
+							pending: "Transaction pending",
+							success: "Transaction confirm",
+							error: "Transaction rejected",
+						}
+					);
+			}
+		);
+}
+
 const getOrderInfo = (contract) => {
 	return contract.methods.getOrderInfo().call();
 };
@@ -153,7 +216,6 @@ const getOrderInfo = (contract) => {
 const getAllTransactionOrder = (contract) => {
 	return contract.methods.getAllTransactionOrder().call();
 };
-
     
 export {
     confirmPurchase,
@@ -163,5 +225,8 @@ export {
     getOrderInfo,
 	getAllTransactionOrder,
 	confirmDeliveryOrder,
-	confirmReturnedOrder
+	confirmReturnedOrder,
+	handleWithDrawForBuyerWhenSellerNotConfirm,
+	handleWithDrawForSellerWhenDeliveryExpired,
+	handleWithDrawForBuyerWhenReturnExpired
 }

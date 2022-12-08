@@ -20,17 +20,20 @@ import CircularProgress from '@mui/material/CircularProgress';
 import {ethers} from 'ethers'
 import { getWarehouseAdress, getContract } from "helpers";
 import { useLibrary } from "hooks/contract";
-import { addOrderToWarehouse, getOrderPerCompany } from "apis/contractAPI/Warehouse";
+import { addOrderToWarehouse, getAllOrder, getOrderPerCompany } from "apis/contractAPI/Warehouse";
 import { confirmPaymentToSeller, confirmPurchase, getAllTransactionOrder } from "apis/contractAPI/OrderAPI";
 import moment from "moment";
 import CompanyInfomation from "components/CompanyInfomation";
+import { useWeb3React } from "@web3-react/core";
+import { ConvertVNDToETH } from "utils/logicUntils";
 
-const Order = ({order, getcontract}) => {
+const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEvent}) => {
 	const navigate = useNavigate()
 	const dispatch = useDispatch()
+	const { active, account } = useWeb3React();
  	const { newOrder } = useSelector((store)=> store.order)
  	const [loading, setLoading] = useState(false)
-	const { account } = useSelector((store)=> store.user)
+	const { accountUser } = useSelector((store)=> store.user)
 	const [stateAddress, setStateAddress] = useState({
 		cityOptions: [],
 		districtOptions: [],
@@ -40,6 +43,7 @@ const Order = ({order, getcontract}) => {
 		selectedWard: null
 	});
 	const [data, setData] = useState([])
+	const [deliveryPay, setDeliveryFee] = useState(0.005)
 
 	const [stateOrder, setStateOrder] = useState({
 		ward: '',
@@ -57,18 +61,59 @@ const Order = ({order, getcontract}) => {
 		setData(order)
 	}, [])
 
+	useEffect(()=> {
+		if(!Object.keys(accountUser)?.length) return
+		const fetchAddress = async () => {
+			await getProvince().then(res=> {
+				const data = res.data.data.map((pro)=> ({...pro, label: pro.name, value: pro.name}))
+				const selectedCity = data.find((item)=> item?.id === accountUser?.address.province)
+				setStateAddress((prev)=> ({
+					...prev, 
+					cityOptions: data,
+					selectedCity: selectedCity
+				}))
+			})
+			await getDistrict(accountUser?.address.province).then((res)=> {
+				const dataDistricts = res.data.data.map((dis)=> ({...dis, label: dis.name, value: dis.name}))
+				const selectedDis = dataDistricts.find((item)=> item?.id === accountUser?.address.district)
+				setStateAddress((prev)=> (
+					{
+						...prev,
+						districtOptions: dataDistricts,
+						selectedDistrict: selectedDis,
+					}
+				));
+			})
+			await getWard(accountUser?.address.district).then((res)=> {
+				const dataWards = res.data.data.map((ward)=> ({...ward, label: ward.name, value: ward.name}))
+				const selectedWard = dataWards.find((item)=> item?.id === accountUser?.address.ward)
+				console.log({selectedWard});
+				setStateAddress((prev)=> ({
+					...prev,
+					wardOptions: dataWards,
+					selectedWard: selectedWard
+				}));
+				})
+
+			setStateOrder((prev)=> ({...prev, detailAddress: accountUser?.address?.detail}) )
+		}
+		fetchAddress()
+	}, [])
+
+	console.log(stateAddress);
 	useEffect(() => {
+		if(Object.keys(accountUser)?.length) return
 		setLoading(true)
 		const fetchProvinces = async() => {
 			
 			await getProvince().then(res=> {
-			const data = res.data.data.map((pro)=> ({...pro, label: pro.name, value: pro.name}))
-			setStateAddress((prev)=> ({
-					...prev, 
-					cityOptions: data,
-					selectedCity: data[0]
-			}))
-			}).then(()=> setLoading(false))
+				const data = res.data.data.map((pro)=> ({...pro, label: pro.name, value: pro.name}))
+				setStateAddress((prev)=> ({
+						...prev, 
+						cityOptions: data,
+						selectedCity: data[0]
+				}))
+				}).then(()=> setLoading(false))
 			}
 			fetchProvinces()
 		}, []);
@@ -77,9 +122,10 @@ const Order = ({order, getcontract}) => {
 		if(!data?.length) return
 		const totalPrice = data.reduce((total, value) => {
 				const {count, price, discount} = value
+				console.log({value});
 				return total + count*price*(1 - discount)
 		}, 0)
-		setTotalPrice(totalPrice)
+		setTotalPrice(parseFloat(totalPrice).toFixed(4))
 	}, [data])
 
 	const onCitySelect = async(option) => {
@@ -132,6 +178,8 @@ const Order = ({order, getcontract}) => {
 		})
 	}
 
+	console.log(data);
+
 	const handleRemoveProduct = (id) => {
 		const products = JSON.parse(localStorage.getItem("products")).filter(
 			(item) => item._id !== id
@@ -142,16 +190,22 @@ const Order = ({order, getcontract}) => {
 		}))
 	}
 
-	const getcontractOrder = async () => {
-		return await getContract(library, '0xBC58a7865bFe90C7232b7a85C24835ca1Af71014', "Order");
-	};
+	// const getcontractOrder = async () => {
+	// 	return await getContract(library, '0xBC58a7865bFe90C7232b7a85C24835ca1Af71014', "Order");
+	// };
+
+	const getContractWarehouse = async() => {
+		return await getContract(library, getWarehouseAdress());
+	}
 
 	const handlePayment = async() => {
-		if(isEmpty(account)) {
+		if(isEmpty(accountUser)) {
 			return alert("Vui lòng đăng nhập để thanh toán!")
 		}
+		setLoadingEvent(true)
+		setTitleLoading('Đang thực hiện quá trình thanh toán')
 		const products = JSON.parse(localStorage.getItem('products'))
-		const details = products.map((product)=> {
+		const details = order.map((product)=> {
 			const {discount, price} = product
 			return {
 					product: product._id,
@@ -159,29 +213,56 @@ const Order = ({order, getcontract}) => {
 					quantity: product.count
 			}
 		})
-		const data = {
-			walletAddress: 'xxxxxxx',
-			buyer: account._id,
-			seller: products[0].user._id,
-			totalPrice: totalPrice + 15000,
-			totalProduct: products?.length,
-			note: stateOrder.note,
-			phoneNumber: stateOrder.phoneNumber,
-			address: `${stateOrder.detailAddress}, ${stateOrder.ward}, ${stateAddress.selectedDistrict?.label}, ${stateAddress.selectedCity?.label}`,
-			details: details
-		}
-		const contract = await getcontractOrder();
+		const accountSeller = products?.[0]?.user?.walletAddress
+		const contract = await getContractWarehouse();
+		
+		addOrderToWarehouse(
+			contract,
+			accountUser?.walletAddress,
+			accountSeller,
+			2,
+			order?.length,
+			moment(Date.now()).add(15, 'days').toDate().getTime(),
+		).then(async(res)=> {
+			console.log({res})
+			setTitleLoading('Đang tạo thanh toán')
+			const getContractOrder = async () => {;
+				return await getContract(library, res.events.createOrder.returnValues[0], "Order");
+			}
+			const contractOrder = await getContractOrder()
+			await confirmPurchase(
+				contractOrder,
+				account,
+				library.utils.toWei(`0.0017`, 'ether')
+				).then((res1)=> {
+					console.log(res1);
+					const dataDB = {
+						walletAddress: res1.events.confirmPurchaseEvent.returnValues[1],
+						note: stateOrder.note,
+						phoneNumber: stateOrder.phoneNumber,
+						address: `${stateOrder.detailAddress}, ${stateOrder.ward}, ${stateAddress.selectedDistrict?.label}, ${stateAddress.selectedCity?.label}`,
+						details: details
+					}
+					dispatch(createOrder(dataDB, (res)=> {
+						if(res) {
+							const detailIds = res.order.details?.map((d)=> d.product)
+							const products = JSON.parse(localStorage.getItem("products")).filter(
+								(item) => !detailIds.includes(item._id)
+							);
+							setData([...products]);
+							localStorage.setItem("products", JSON.stringify(products));
+							setData([])
+							setLoadingEvent(false)
+							useNotification.Success({
+								title: "Thành công",
+								message:"Bạn đã đặt hàng thành công!",
+								duration: 4000
+							  })
+						}
+					}))
+				}).catch(()=> setLoadingEvent(false))
+		}).catch(()=> setLoadingEvent(false))
 
-		// addOrderToWarehouse(
-		// 	contract,
-		// 	'0x87E459a7f037681f8bAd99522D3Cae1a734Ef9c6',
-		// 	'0xf8a8F06dEF170fbD1DB7f04FF561eDf8d7aC1846',
-		// 	20000,
-		// 	3,
-		// 	''
-		// ).then((res)=> {
-		// 	console.log(res);
-		// })
 
 		// confirmPurchase(
 		// 	contract,
@@ -205,30 +286,19 @@ const Order = ({order, getcontract}) => {
 		
 		// console.log(formatted, formatted1);
 
-		// const listOrder = await getOrderPerCompany(contract, '0x87E459a7f037681f8bAd99522D3Cae1a734Ef9c6')
-		// console.log(1669654752 - 1669653372);
+		const listOrder = await getAllOrder(contract)
+		console.log({listOrder});
 
-		dispatch(createOrder(data, (res)=> {
-		    if(res) {
-		        const detailIds = res.order.details?.map((d)=> d.product)
-		        const products = JSON.parse(localStorage.getItem("products")).filter(
-		            (item) => !detailIds.includes(item._id)
-		        );
-		        setData([...products]);
-		        localStorage.setItem("products", JSON.stringify(products));
-				setData([])
-		    }
-		}))
 	}
 
 	if(isEmpty(data)) return null
 
 	return (
 		<Container maxWidth="xl" className="order-item-container">
-			<Grid container xs={12} spacing={2} style={{marginTop: 5, marginBottom: 20, marginLeft: 5}}>
+			<Grid container spacing={2} style={{marginTop: 5, marginBottom: 20, marginLeft: 5}}>
 				<CompanyInfomation info={data[0]?.user}/>
 			</Grid>
-			<Grid container xs={12} spacing={2} style={{width: '100%', marginLeft: '-8px'}}>
+			<Grid container spacing={2} style={{width: '100%', marginLeft: '-8px'}}>
 				<Grid item container xs={12} className='list-product'>
 					<Grid item container xs={12} className='cart-header' style={{maxHeight: 60}}>
 						<Grid item xs={5}>
@@ -260,7 +330,7 @@ const Order = ({order, getcontract}) => {
 					{
 						!!data?.length && (
 							data?.map((product, index)=> {
-								return <Grid  key={index} container item xs={12} className='line-product'>
+								return <Grid key={index} container item xs={12} className='line-product'>
 									<Grid item xs={5} className="grid-cart" style={{justifyContent: 'normal'}}>
 										<div style={{display: 'flex', alignItems: 'center'}}>
 												<img
@@ -298,7 +368,7 @@ const Order = ({order, getcontract}) => {
 									</Grid>
 									<Grid item xs={2} className="grid-cart">
 										<div>
-											<PriceDiscount valueDiscount={0} valuePrice={product.count*(product.price*(1-product.discount))} />
+											<PriceDiscount valueDiscount={0} valuePrice={parseFloat((product.count*(product.price*(1-product.discount))).toFixed(4))} />
 										</div> 
 									</Grid>
 									<Grid item xs={1} className="grid-cart">
@@ -328,7 +398,7 @@ const Order = ({order, getcontract}) => {
 									id="companyName"
 									label="Tên doanh nghiệp/công ty"
 									disabled
-									value={account?.companyName}
+									value={accountUser?.companyName}
 									style={{background: '#fff'}}
 								/>
 								</Grid>
@@ -432,7 +502,7 @@ const Order = ({order, getcontract}) => {
 										}}
 										placeholder="Phường/Xã"
 										style={{width: '50%', height: 55}}
-										defaultValue={selectedWard?.name}
+										inputValue={selectedWard?.name}
 										onInputChange={(e)=> {
 											setStateAddress((prev) => ({
 												...prev, 
@@ -487,7 +557,7 @@ const Order = ({order, getcontract}) => {
 										label="Điện thoại liên hệ"
 										name="phone"
 										autoComplete="phone"
-										value={account?.phoneNumber}
+										value={accountUser?.phoneNumber}
 										onChange={(e)=> setStateOrder((prev)=> ({...prev, phoneNumber: e.target.value}))}
 										style={{background: '#fff'}}
 									/>
@@ -502,7 +572,7 @@ const Order = ({order, getcontract}) => {
 										name="email"
 										disabled
 										autoComplete="email"
-										value={account?.email}
+										value={accountUser?.email}
 										style={{background: '#fff'}}
 									/>
 								</Grid>
@@ -533,9 +603,9 @@ const Order = ({order, getcontract}) => {
 							<div className="wrapper-payment__info">
 								<div style={{display: 'flex', flexDirection: 'column', width: '100%'}}>
 									{
-										data?.map((product)=> {
+										data?.map((product, idx)=> {
 											return (
-												<div className="product-item">
+												<div className="product-item" key={idx}>
 													<div className="product-name">
 														<span className="name">
 															{product.productName}
@@ -545,7 +615,7 @@ const Order = ({order, getcontract}) => {
 														</span>
 													</div>
 													<div className="view-price">
-														<PriceDiscount valueDiscount={0} valuePrice={product.count*(product.price*(1-product.discount))} />
+														<PriceDiscount valueDiscount={0} valuePrice={parseFloat((product.count*(product.price*(1-product.discount)))).toFixed(4)} />
 													</div>
 												</div>
 											)
@@ -567,7 +637,7 @@ const Order = ({order, getcontract}) => {
 									Phí vận chuyển:
 								</span>
 								<div className="view-price">
-									<PriceDiscount valueDiscount={0} valuePrice={15000} />
+									<PriceDiscount valueDiscount={0} valuePrice={deliveryPay} />
 								</div>
 							</div>
 
@@ -576,13 +646,13 @@ const Order = ({order, getcontract}) => {
 									Tổng tiền:
 								</span>
 								<div className="view-price">
-									<PriceDiscount valueDiscount={0} valuePrice={totalPrice + 15000} />
+									<PriceDiscount valueDiscount={0} valuePrice={parseFloat(parseFloat(totalPrice) + parseFloat(deliveryPay)).toFixed(4)} />
 								</div>
 							</div>
 
 							<Typography gutterBottom variant="button" component="div" align='right' style={{display: 'flex', alignItems: 'center', justifyContent: 'right', marginLeft: 20}}>
 								{
-									newOrder.loading ? <CircularProgress color="warning" size={30} sx={{marginRight: '10px'}}/> : <></> 
+									loadingEvent ? <CircularProgress color="warning" size={30} sx={{marginRight: '10px'}}/> : <></> 
 								}
 								<Button variant="contained" color="warning"
 									onClick={() => handlePayment()} sx={{height: 50}}

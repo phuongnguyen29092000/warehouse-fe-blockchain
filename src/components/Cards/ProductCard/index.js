@@ -33,12 +33,14 @@ export default function ProductCard({
   manufacturer,
   discount = 0,
   setOpenDrawerCart,
-  dataDetail
+  dataDetail,
+  manage = false,
+  handleEdit,
+  handleDelete
 }) {
   const [shadow, setShadow] = React.useState(false);
   const onMouseOver = () => setShadow(true);
   const onMouseOut = () => setShadow(false);
-  // const {account} = ((store) => store.user)
   const handleOnClick = () => {
     //
   };
@@ -222,30 +224,53 @@ export default function ProductCard({
             {description}
           </Typography>
         </CardContent>
-        <CardActions>
-          <Button
-            size="small"
-            disabled={false}
-            color="warning"
-            variant="contained"
-            onClick={() => handleAddToCart(dataDetail)}
-          >
-            Thêm vào giỏ
-          </Button>
-          <Link
-            style={{ textDecoration: "none" }}
-            to={`/chi-tiet-san-pham/${_id}`}
-          >
-            <Button
-              size="small"
-              color="warning"
-              variant="outlined"
-              sx={{ ml: "10px" }}
-            >
-              Xem thêm
-            </Button>
-          </Link>
-        </CardActions>
+        {
+          !manage ? 
+            <CardActions>
+              <Button
+                size="small"
+                disabled={false}
+                color="warning"
+                variant="contained"
+                onClick={() => handleAddToCart(dataDetail)}
+              >
+                Thêm vào giỏ
+              </Button>
+              <Link
+                style={{ textDecoration: "none" }}
+                to={`/chi-tiet-san-pham/${_id}`}
+              >
+                <Button
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  sx={{ ml: "10px" }}
+                >
+                  Xem thêm
+                </Button>
+              </Link>
+            </CardActions> : 
+            <CardActions>
+              <Button
+                size="small"
+                disabled={false}
+                color="info"
+                variant="contained"
+                onClick={handleEdit}
+              >
+                Chỉnh sửa
+              </Button>
+                <Button
+                  size="small"
+                  color="info"
+                  variant="outlined"
+                  sx={{ ml: "10px" }}
+                  onClick={handleDelete}
+                >
+                  Xóa
+                </Button>
+            </CardActions>
+        }
       </Card>
     </>
   );
