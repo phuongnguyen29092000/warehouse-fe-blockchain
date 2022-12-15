@@ -30,7 +30,6 @@ const getAllOrderByUser = (id, queriesData, callback = ()=>{}) => {
     }
 }
 
-
 const createOrder = (data, callback = ()=>{}) => {
     return async(dispatch) => {
         await CheckExpiredToken()

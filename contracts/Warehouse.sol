@@ -14,29 +14,27 @@ contract Warehouse {
     event createOrder(
         address orderAddress, 
         address owner,
-        address seller,
-        uint256 totalPrice,
-        uint256 shippingPrice,
-        uint256 totalProduct,
-        uint256 dealine
+        address seller
     );
 
     function getOwner() public view returns (address) {
         return owner;
     }
 
-    function addOrder(address seller, uint256 totalPrice, uint256 totalProduct, uint256 shippingPrice, uint256 deadline) public payable returns (bool) {
-        require(totalPrice > 0, "totalPrice must be greater than zero");
-        Order order = new Order(msg.sender, seller, totalPrice, shippingPrice, totalProduct, deadline);
+    function addOrder(address seller, uint256 totalProduct, uint256 shippingPrice, uint256 deadline) 
+        public 
+        returns 
+        (bool) 
+    {
+        require(totalProduct > 0, "totalProduct must be greater than zero");
+        require(shippingPrice > 0, "shippingPrice must be greater than zero");
+        require(deadline > 0, "totalProduct must be greater than zero");
+        Order order = new Order(msg.sender, seller, shippingPrice, totalProduct, deadline);
         listOrder.push(address(order));
         emit createOrder(
             order.getAddress(),
             msg.sender,
-            seller,
-            totalPrice, 
-            shippingPrice,
-            totalProduct,
-            deadline
+            seller
         );
         return true;
     }

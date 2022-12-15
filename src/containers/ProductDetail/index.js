@@ -17,7 +17,7 @@ import PriceDiscount from '../../LogicResolve/PriceDiscount';
 import Spinner from 'components/Spinner';
 import { getUser } from 'hooks/localAuth';
 // import BookTourModal from 'components/modal/BookTourModal';
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 import moment from 'moment';
 // import { setActiveUrl } from 'redux/reducers/activeUrl/action';
 import { getProductById, getSimilarProduct } from 'redux/reducers/product/action';
@@ -30,6 +30,8 @@ import {DEFAULT_PARAMS} from '../../utils/constant'
 import ProductCard from 'components/Cards/ProductCard';
 import { Link, useNavigate } from "react-router-dom";
 import TabDetail from 'components/TabDetail';
+import useNotification from 'hooks/notification';
+import { addOrUpdateCart } from 'redux/reducers/cart/action';
 
 const useStyles = makeStyles({
     avatar: {
@@ -103,12 +105,13 @@ function ProductDetail() {
     const [slides, setSlides] = useState([]);
     const dispatch = useDispatch();
     const { productDetail, similarProduct } = useSelector((store) => store.product)
+    const { accountUser } = useSelector((store) => store.user)
+    const { cartData } = useSelector((store) => store.cart)
     const { loading, data} = productDetail
     const [isShowBookTourModal, setIsShowBookTourModal] = React.useState(false)
     const [count, setCount] = useState(0);
     const [openDrawerCart, setOpenDrawerCart] = useState(false)
     const navigate = useNavigate()
-    // const [similarProducts, setSimilarProducts] = useState([])
 
     const handleOnClick = () => {
         setIsShowBookTourModal(true);
@@ -160,16 +163,59 @@ function ProductDetail() {
         setCount(countNext);
     }
     const hanldeAddToCart = (detail) => {
-        setOpenDrawerCart(true)
-        if(count < data?.minimumQuantity) return 
-        const products = (JSON.parse(localStorage.getItem('products')))?.length 
-        ? JSON.parse(localStorage.getItem('products')) : [];
-        if(!products.every((item)=> !item.id.includes(detail._id))) return
-        localStorage.setItem('products', JSON.stringify([...products, {...detail, count: count}]));
+        if(!Object.keys(accountUser)?.length) {
+            useNotification.Error({
+              title: "Chú ý!",
+              message:`Vui lòng đăng nhập để mua hàng!`,
+              duration: 3000
+            })
+            navigate('/dang-nhap')
+            return 
+        }
+        const existProduct = cartData?.products?.filter((p)=> p?.product._id.toString()?.includes(detail._id.toString()))
+        if(!isEmpty(existProduct)) {
+            useNotification.Error({
+                title: "Chú ý!",
+                message:`Sản phẩm đã có trong giỏ hàng!`,
+                duration: 3000
+            })
+            setOpenDrawerCart(true);
+            return 
+        }
+        const data = {
+            product: detail._id,
+            quantity: count
+        }
+        dispatch(addOrUpdateCart(accountUser?._id, data, (res)=> {
+        if(res) {
+            setOpenDrawerCart(true);
+            console.log({res});
+        }
+        }))
     }
 
-    const handlePayment = (data) => {
-        hanldeAddToCart(data)
+    const handlePayment = (detail) => {  
+        if(!Object.keys(accountUser)?.length) {
+            useNotification.Error({
+              title: "Chú ý!",
+              message:`Vui lòng đăng nhập để mua hàng!`,
+              duration: 3000
+            })
+            navigate('/dang-nhap')
+            return 
+        }
+        const existProduct = cartData?.products?.filter((p)=> p?.product._id.toString()?.includes(detail._id.toString()))
+        if(isEmpty(existProduct)) {
+            const data = {
+                product: detail._id,
+                quantity: count
+            }
+            dispatch(addOrUpdateCart(accountUser?._id, data, (res)=> {
+                if(res) {
+                    console.log({res});
+                }
+            }))
+        }
         navigate('/gio-hang')
     }
 
@@ -238,7 +284,7 @@ function ProductDetail() {
                                     </Typography>
                                     <Typography gutterBottom variant="body1" component="div" align='left'>
                                         <span style={{ color: 'darkblue', fontWeight: 'bold' }}>Ngày sản xuất: </span>
-                                        {new Date(data?.dateOfInventory?.slice(0, 10))?.toLocaleDateString("en-GB")}
+                                        {new Date(data?.dateOfManufacture?.slice(0, 10))?.toLocaleDateString("en-GB")}
                                     </Typography>
                                     <Typography gutterBottom variant="body1" component="div" align='left'>
                                         <span style={{ color: 'darkblue', fontWeight: 'bold' }}>Thời hạn bảo hành: </span>

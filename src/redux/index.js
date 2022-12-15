@@ -5,6 +5,7 @@ import user from './reducers/user'
 import order from "./reducers/order";
 import feedback from "./reducers/feedback";
 import activeUrl from "./reducers/activeUrl";
+import cart from "./reducers/cart";
 
 const rootReducer = combineReducers({
     category,
@@ -12,7 +13,8 @@ const rootReducer = combineReducers({
     user,
     order,
     activeUrl,
-    feedback
+    feedback,
+    cart
 });
 
 export default rootReducer; 

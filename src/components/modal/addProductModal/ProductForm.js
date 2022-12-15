@@ -312,7 +312,10 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
                     <label>Hình ảnh: </label>
                     <input type='file' {...register("imageUrl")} name="imageUrl" onChange={(e)=>handleChangePreview(e)} id='image-0' className='image-select' />
                     <div className='image-slide'>
-                        <div className='image-slide__item' onClick={()=>{document.getElementById('image-0').click()}}>
+                        <div className='image-slide__item' onClick={()=>{
+                                if(product && product.manufacturer._id !== accountUser._id) return
+                                document.getElementById('image-0').click()}}
+                            >
                             {(!imagePreview && !product) && <AddIcon fontSize='large' />}
                             {imagePreview && <img src={imagePreview.preview}/>}
                             {(!imagePreview && product) && <img src={ConvertToImageURL(product?.imageUrl)}/>}
@@ -321,7 +324,6 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
                 </div>
                 <button type='submit' ref={formRef} style={{display:'none'}}>SUBMIT</button>
             </form>
-
         </div>
     );
 }

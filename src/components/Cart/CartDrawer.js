@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Button, Divider, Grid } from "@mui/material";
+import { Button, CircularProgress, Divider, Grid } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import PriceDiscount from "LogicResolve/PriceDiscount";
 import ConvertToImageURL from "LogicResolve/ConvertToImageURL";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteItemCart, getCartByUser } from "redux/reducers/cart/action";
+import { isEmpty } from "lodash";
 
 const CartDrawer = ({ onClose }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
+  const {accountUser} = useSelector((store)=> store.user)
+  const {loading, cartData} = useSelector((store)=> store.cart)
   const [data, setData] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0)
 
   useEffect(() => {
-    const productsStore = JSON.parse(localStorage.getItem("products"));
-    if (!productsStore?.length) return;
-    setData(productsStore);
+    if(!accountUser?._id) return
+    dispatch(getCartByUser(accountUser?._id, (res)=> {
+      //
+    }))
   }, []);
 
   useEffect(()=> {
@@ -26,12 +33,9 @@ const CartDrawer = ({ onClose }) => {
   }, [data])
 
   const handleRemoveProduct = (id) => {
-    const products = JSON.parse(localStorage.getItem("products")).filter(
-      (item) => item._id !== id
-    );
-    if (!products?.length) onClose();
-    setData([...products]);
-    localStorage.setItem("products", JSON.stringify(products));
+    dispatch(deleteItemCart(accountUser?._id, {productId: id}, (res)=> {
+      if(isEmpty(res?.products)) onClose()
+    }))
   };
 
   const hanleChangeCount = (value, product) => {
@@ -67,64 +71,68 @@ const CartDrawer = ({ onClose }) => {
       >
         Giỏ hàng ({data?.length})
       </label>
-      <div style={{ display: "flex", flexDirection: "column", width: "100%", height: '100%', paddingTop: 15}}>
-        {data?.map((item) => {
-          return (
-            <>
-              <div style={{ height: 50 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={3}>
-                    <img
-                      src={ConvertToImageURL(item.imageUrl)}
-                      style={{ width: 60, height: 60, marginLeft: 16 }}
-                      alt=""
-                    />
-                  </Grid>
-                  <Grid container item xs={9}>
-                    <Grid
-                      item
-                      xs={12}
-                      style={{ marginBottom: 6, cursor: "pointer" }}
-                      onClick={() => navigate(`/chi-tiet-san-pham/${item.id}`)}
-                    >
-                      <span>{item.productName}</span>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={12}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        paddingRight: 10,
-                      }}
-                    >
-                      <input
-                        type="number"
-                        value={parseInt(item.count)}
-                        style={{ width: 50, outline: "none", height: 20}}
-                        onChange={(e)=> hanleChangeCount(e.target.value, item)}
-                        onKeyDown={(e)=> {
-                          if(e.key === "Backspace") {
-                              const key = e.target.value.slice(0,-1)
-                              hanleChangeCount(key, item)
-                          }
-                        }}
-                      ></input>
-                      <DeleteIcon
-                        htmlColor="#ff8000"
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => handleRemoveProduct(item._id)}
+      {
+        loading ?  <CircularProgress color="warning" size={30} sx={{marginRight: '10px'}}/> 
+        : 
+        <div style={{ display: "flex", flexDirection: "column", width: "100%", height: '100%', paddingTop: 15}}>
+          {cartData?.products?.map((item,idx) => {
+            return (
+              <>
+                <div style={{ height: 50 }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={3}>
+                      <img
+                        src={ConvertToImageURL(item.product.imageUrl)}
+                        style={{ width: 60, height: 60, marginLeft: 16 }}
+                        alt=""
                       />
                     </Grid>
+                    <Grid container item xs={9}>
+                      <Grid
+                        item
+                        xs={12}
+                        style={{ marginBottom: 6, cursor: "pointer" }}
+                        onClick={() => navigate(`/chi-tiet-san-pham/${item.product._id}`)}
+                      >
+                        <span>{item.product.productName}</span>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={12}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          paddingRight: 10,
+                        }}
+                      >
+                        <input
+                          type="number"
+                          value={parseInt(item.quantity)}
+                          style={{ width: 50, outline: "none", height: 20}}
+                          onChange={(e)=> hanleChangeCount(e.target.value, item)}
+                          onKeyDown={(e)=> {
+                            if(e.key === "Backspace") {
+                                const key = e.target.value.slice(0,-1)
+                                hanleChangeCount(key, item)
+                            }
+                          }}
+                        ></input>
+                        <DeleteIcon
+                          htmlColor="#ff8000"
+                          sx={{ cursor: "pointer" }}
+                          onClick={() => handleRemoveProduct(item.product._id)}
+                        />
+                      </Grid>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </div>
-              <Divider style={{ margin: "25px 0" }} />
-            </>
-          );
-        })}
-      </div>
+                </div>
+                <Divider style={{ margin: "25px 0" }} />
+              </>
+            );
+          })}
+        </div>
+      }
       {/* <div style={{display: 'flex',padding: '15px', justifyContent: 'end', alignItems: 'center'}}>
         <div>
           <PriceDiscount valueDiscount={0} valuePrice={totalPrice} />

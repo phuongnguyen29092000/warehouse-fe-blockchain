@@ -13,3 +13,12 @@ export const getOrderStatus= (value) => {
     ]
     return STATUS?.[value]
 }
+
+export const handleGroupByUser = (data) => {
+    const rs = data.reduce((group, item)=> {
+        if(!group[item.userInfo._id]) group[item.userInfo._id] = []
+        group[item.userInfo._id].push(item)
+        return group
+    }, {})
+    return Object.values(rs)
+}

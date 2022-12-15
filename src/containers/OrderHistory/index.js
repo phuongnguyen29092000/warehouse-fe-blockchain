@@ -11,9 +11,9 @@ import { getContract, getWarehouseAdress } from "helpers";
 import { isEmpty } from "lodash";
 import { getUser } from "hooks/localAuth";
 import { Loading } from 'react-loading-dot'
-import { Box } from "@mui/system";
 import WaitingMessage from "components/common/WaitingMessage";
 import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import { getOrderStatus } from "utils/logicUntils";
 
 const OrderHistory = () => {
@@ -48,17 +48,18 @@ const OrderHistory = () => {
                 const sortedData = temp.sort((a, b) => {
                     return b?.purchaseTime - a?.purchaseTime
                 })
-                setData([...sortedData])
-                setDataRs([...sortedData])
+                const result = sortedData?.filter((item)=> !!Number(item?.purchaseTime))
+                setData([...result])
+                setDataRs([...result])
             }).then(()=> setLoading(false))
         }
         getAllOrder()
     }, [])
 
     useEffect(()=> {
-        if(queriesData?.type ==='all' && !queriesData?.state==='all' && !queriesData?.addressKey) return
         const filterOrder = async() => {
             setLoading(true)
+            if(queriesData?.type ==='all' && !queriesData?.state==='all' && !queriesData?.addressKey) return
             const walletAddressUser = getUser()?.walletAddress
             let temp = []
             if(queriesData?.type === 'purchase') {
@@ -67,7 +68,7 @@ const OrderHistory = () => {
                 })
             } else
             if(queriesData?.type === 'sell') {
-                data?.filter((order)=> {
+                temp = data?.filter((order)=> {
                     return order?.seller.toLowerCase() === walletAddressUser?.toLowerCase()
                 })
             } else temp = [...data]
@@ -83,15 +84,13 @@ const OrderHistory = () => {
     
             if(!queriesData?.addressKey) setDataRs([...result])
             else setDataRs((result?.filter((order)=> {
-                return order?.orderAddress?.toLowerCase() === queriesData?.addressKey?.toUpperCase()
+                return order?.orderAddress?.toLowerCase() === queriesData?.addressKey?.toLowerCase()
             })))
-            console.log('xxxxxxxxxx');
         }
         filterOrder().then(()=> {
             setLoading(false)
         })
     }, [queriesData])
-    console.log({queriesData});
 
     return (
         <>
@@ -114,7 +113,7 @@ const OrderHistory = () => {
                             >
                             <MenuItem value='all'>Tất cả đơn</MenuItem>
                             <MenuItem value='sell'>Đơn xuất kho</MenuItem>
-                            <MenuItem value='purchase'>Đơn nhâp kho</MenuItem>
+                            <MenuItem value='purchase'>Đơn nhập kho</MenuItem>
                         </Select>
                     </FormControl>
                     <FormControl variant="standard" sx={{ m: 1, minWidth: 150 , marginRight: '20px'}}>
@@ -140,22 +139,29 @@ const OrderHistory = () => {
                         id="standard-basic" 
                         label="Địa chỉ ví đơn hàng"
                         variant="standard" 
-                        style={{width: '100%',minWidth: '400px', marginTop: '-12px', marginRight: '20px'}}
+                        style={{width: '100%',minWidth: '450px', marginTop: '-12px', marginRight: '20px'}}
                         value={queriesData?.addressKey}
-                        // className={search && 'hidden-label'}
+                        className={queriesData?.addressKey && 'hidden-label'}
                         InputProps={{
                         endAdornment: (
                             <InputAdornment>
-                                <div onClick={()=> {
-                                    setQueriesData()
-                                }}>
-                                <SearchIcon sx={{cursor: 'pointer'}}/>
-                                </div>
+                                {
+                                    !queriesData?.addressKey ? 
+                                    <div>       
+                                        <SearchIcon sx={{cursor: 'pointer'}}/>
+                                    </div> : 
+                                    <div onClick={()=> {
+                                        setQueriesData((prev)=> ({...prev, addressKey: ''}))
+                                    }}>
+                                        
+                                        <CloseIcon sx={{cursor: 'pointer'}}/>
+                                    </div>
+                                }
                             </InputAdornment>
                         )
                         }}
                         onChange={(e)=> {
-                        // setSearch(e.target.value)
+                            setQueriesData((prev)=> ({...prev, addressKey: e.target.value}))
                         }}
                         />
                 </div>

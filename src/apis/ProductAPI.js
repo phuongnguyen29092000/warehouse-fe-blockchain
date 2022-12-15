@@ -31,7 +31,10 @@ const deleteProduct = (id) => {
   return axiosClient.delete(url, { headers: getHeaderWithToken() });
 };
 
-
+const createProductsWhenPayment = (data) => {
+  const url = "/product/create-multiple";
+  return axiosClient.post(url, data, { headers: getHeaderWithToken() });
+};
 
 export default {
   addProduct,
@@ -39,5 +42,6 @@ export default {
   getProductById,
   updateProduct,
   deleteProduct,
-  getAllProductPerCompany
+  getAllProductPerCompany,
+  createProductsWhenPayment
 };

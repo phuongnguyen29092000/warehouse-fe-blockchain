@@ -25,15 +25,19 @@ import { confirmPaymentToSeller, confirmPurchase, getAllTransactionOrder } from 
 import moment from "moment";
 import CompanyInfomation from "components/CompanyInfomation";
 import { useWeb3React } from "@web3-react/core";
-import { ConvertVNDToETH } from "utils/logicUntils";
+import { ConvertVNDToETH, handleGroupByUser } from "utils/logicUntils";
+import { injected } from "components/Wallet";
+import { deleteItemCart, deleteMultipleItemCartById } from "redux/reducers/cart/action";
+import { getUser } from "hooks/localAuth";
 
-const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEvent}) => {
+const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEvent, setDataOrders}) => {
 	const navigate = useNavigate()
 	const dispatch = useDispatch()
-	const { active, account } = useWeb3React();
+	const { active, activate, error, account } = useWeb3React();
  	const { newOrder } = useSelector((store)=> store.order)
+ 	const { cartData } = useSelector((store)=> store.cart)
  	const [loading, setLoading] = useState(false)
-	const { accountUser } = useSelector((store)=> store.user)
+	const accountUser = getUser()
 	const [stateAddress, setStateAddress] = useState({
 		cityOptions: [],
 		districtOptions: [],
@@ -42,6 +46,7 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 		selectedDistrict: null,
 		selectedWard: null
 	});
+
 	const [data, setData] = useState([])
 	const [deliveryPay, setDeliveryFee] = useState(0.005)
 
@@ -60,6 +65,17 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 		if(isEmpty(order)) return 
 		setData(order)
 	}, [])
+
+	useEffect(()=> {
+        if (active) {
+            return;
+        }
+        try {
+        activate(injected);
+        } catch (ex) {
+        console.log(ex);
+        }
+    }, [active])
 
 	useEffect(()=> {
 		if(!Object.keys(accountUser)?.length) return
@@ -100,7 +116,6 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 		fetchAddress()
 	}, [])
 
-	console.log(stateAddress);
 	useEffect(() => {
 		if(Object.keys(accountUser)?.length) return
 		setLoading(true)
@@ -121,9 +136,9 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 	useEffect(()=> {
 		if(!data?.length) return
 		const totalPrice = data.reduce((total, value) => {
-				const {count, price, discount} = value
-				console.log({value});
-				return total + count*price*(1 - discount)
+			const {quantity} = value
+			const {price, discount} = value?.product
+			return total + quantity*price*(1 - discount)
 		}, 0)
 		setTotalPrice(parseFloat(totalPrice).toFixed(4))
 	}, [data])
@@ -178,54 +193,44 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 		})
 	}
 
-	console.log(data);
-
 	const handleRemoveProduct = (id) => {
-		const products = JSON.parse(localStorage.getItem("products")).filter(
-			(item) => item._id !== id
-		);
-		localStorage.setItem("products", JSON.stringify(products));
-		setData((prev=> {
-			return prev?.filter(p=> p._id !== id)
+		dispatch(deleteItemCart(accountUser?._id, {productId: id}, (res)=> {
+			if(res) {
+				setData(prev=> {
+					return prev?.filter((p)=> p?.product._id !== id)
+				})
+			}
 		}))
 	}
-
-	// const getcontractOrder = async () => {
-	// 	return await getContract(library, '0xBC58a7865bFe90C7232b7a85C24835ca1Af71014', "Order");
-	// };
 
 	const getContractWarehouse = async() => {
 		return await getContract(library, getWarehouseAdress());
 	}
 
 	const handlePayment = async() => {
-		if(isEmpty(accountUser)) {
-			return alert("Vui lòng đăng nhập để thanh toán!")
-		}
 		setLoadingEvent(true)
-		setTitleLoading('Đang thực hiện quá trình thanh toán')
-		const products = JSON.parse(localStorage.getItem('products'))
-		const details = order.map((product)=> {
-			const {discount, price} = product
+		setTitleLoading('Đang thực hiện quá trình tạo hóa đơn. Vui lòng xác nhận!')
+		const details = data.map((product)=> {
+			const {discount, price} = product?.product
 			return {
-					product: product._id,
-					priceDis: price*(1-discount),
-					quantity: product.count
+				product: product.product._id,
+				priceDis: parseFloat(price*(1-discount)).toFixed(4),
+				quantity: product.quantity
 			}
 		})
-		const accountSeller = products?.[0]?.user?.walletAddress
+		const accountSeller = data?.[0]?.userInfo?.walletAddress
 		const contract = await getContractWarehouse();
 		
-		addOrderToWarehouse(
+		await addOrderToWarehouse(
 			contract,
 			accountUser?.walletAddress,
 			accountSeller,
-			2,
-			order?.length,
-			moment(Date.now()).add(15, 'days').toDate().getTime(),
+			deliveryPay*1000000000000000000,
+			details?.length,
+			moment(Date.now()).add(10, 'minutes').toDate().getTime(),
 		).then(async(res)=> {
 			console.log({res})
-			setTitleLoading('Đang tạo thanh toán')
+			setTitleLoading('Đang thực hiện quá trình chuyển tiền vào hóa đơn. Vui lòng xác nhận!')
 			const getContractOrder = async () => {;
 				return await getContract(library, res.events.createOrder.returnValues[0], "Order");
 			}
@@ -233,7 +238,7 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 			await confirmPurchase(
 				contractOrder,
 				account,
-				library.utils.toWei(`0.0017`, 'ether')
+				library.utils.toWei(`${parseFloat(parseFloat(totalPrice) + parseFloat(deliveryPay)).toFixed(4)}`, 'ether')
 				).then((res1)=> {
 					console.log(res1);
 					const dataDB = {
@@ -246,22 +251,35 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 					dispatch(createOrder(dataDB, (res)=> {
 						if(res) {
 							const detailIds = res.order.details?.map((d)=> d.product)
-							const products = JSON.parse(localStorage.getItem("products")).filter(
-								(item) => !detailIds.includes(item._id)
-							);
-							setData([...products]);
-							localStorage.setItem("products", JSON.stringify(products));
+							dispatch(deleteMultipleItemCartById(accountUser?._id, {ids: detailIds}))
 							setData([])
 							setLoadingEvent(false)
 							useNotification.Success({
 								title: "Thành công",
 								message:"Bạn đã đặt hàng thành công!",
 								duration: 4000
-							  })
+							})
+							navigate('/owner/order-history')
 						}
 					}))
-				}).catch(()=> setLoadingEvent(false))
-		}).catch(()=> setLoadingEvent(false))
+				}).catch((e)=> {
+					console.log({e});
+					useNotification.Success({
+						title: "Thất bại",
+						message:"Xác nhận gửi tiền vào hóa đơn thất bại!",
+						duration: 4000
+					})
+					setLoadingEvent(false)
+				})
+		}).catch((e)=>{
+			console.log({e});
+			useNotification.Success({
+				title: "Thất bại",
+				message:"Tạo hóa đơn thất bại!",
+				duration: 4000
+			})
+			setLoadingEvent(false)
+		})
 
 
 		// confirmPurchase(
@@ -286,8 +304,8 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 		
 		// console.log(formatted, formatted1);
 
-		const listOrder = await getAllOrder(contract)
-		console.log({listOrder});
+		// const listOrder = await getAllOrder(contract)
+		// console.log({listOrder});
 
 	}
 
@@ -296,7 +314,7 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 	return (
 		<Container maxWidth="xl" className="order-item-container">
 			<Grid container spacing={2} style={{marginTop: 5, marginBottom: 20, marginLeft: 5}}>
-				<CompanyInfomation info={data[0]?.user}/>
+				<CompanyInfomation info={data[0]?.userInfo}/>
 			</Grid>
 			<Grid container spacing={2} style={{width: '100%', marginLeft: '-8px'}}>
 				<Grid item container xs={12} className='list-product'>
@@ -334,28 +352,28 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 									<Grid item xs={5} className="grid-cart" style={{justifyContent: 'normal'}}>
 										<div style={{display: 'flex', alignItems: 'center'}}>
 												<img
-													src={ConvertToImageURL(product.imageUrl)}
+													src={ConvertToImageURL(product.product.imageUrl)}
 													style={{ width: 80, height: 80, marginRight: 8, cursor: 'pointer'}}
 													alt=""
-													onClick={() => navigate(`/chi-tiet-san-pham/${product._id}`)}
+													onClick={() => navigate(`/chi-tiet-san-pham/${product.product._id}`)}
 												/>
 												<Tooltip title='Xem chi tiết sản phẩm' arrow placement="top">
 													<Typography gutterBottom variant="body1" component="div" align='left' 
-														onClick={() => navigate(`/chi-tiet-san-pham/${product._id}`)}
+														onClick={() => navigate(`/chi-tiet-san-pham/${product.product._id}`)}
 														style={{cursor: 'pointer'}}
 														>
-														<div style={{ color: '#fb5f1b', fontSize: 18, fontWeight: '600', letterSpacing: '1px'}}>{product.productName}</div>
+														<div style={{ color: '#fb5f1b', fontSize: 18, fontWeight: '600', letterSpacing: '1px'}}>{product.product.productName}</div>
 													</Typography>
 												</Tooltip>
 										</div>
 									</Grid>
 									<Grid item xs={2} className="grid-cart">
-											<PriceDiscount valueDiscount={product.discount} valuePrice={product.price} />
+											<PriceDiscount valueDiscount={product.product.discount} valuePrice={product.product.price} />
 									</Grid>
 									<Grid item xs={2} className="grid-cart">
 										<input
 											type="number"
-											value={parseInt(product.count)}
+											value={parseInt(product.quantity)}
 											style={{outline: "none", height: 25, textAlign: 'end', width: 60}}
 											onChange={(e)=> hanleChangeCount(e.target.value, product)}
 											onKeyDown={(e)=> {
@@ -368,14 +386,14 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 									</Grid>
 									<Grid item xs={2} className="grid-cart">
 										<div>
-											<PriceDiscount valueDiscount={0} valuePrice={parseFloat((product.count*(product.price*(1-product.discount))).toFixed(4))} />
+											<PriceDiscount valueDiscount={0} valuePrice={parseFloat((product.quantity*(product.product.price*(1-product.product.discount))).toFixed(4))} />
 										</div> 
 									</Grid>
 									<Grid item xs={1} className="grid-cart">
 										<DeleteIcon
 											htmlColor="#ff8000"
 											sx={{ cursor: "pointer", textAlign: 'right'}}
-											onClick={() => handleRemoveProduct(product?._id)}
+											onClick={() => handleRemoveProduct(product.product?._id)}
 										/>
 									</Grid>
 								</Grid>
@@ -557,7 +575,7 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 										label="Điện thoại liên hệ"
 										name="phone"
 										autoComplete="phone"
-										value={accountUser?.phoneNumber}
+										defaultValue={accountUser?.phoneNumber}
 										onChange={(e)=> setStateOrder((prev)=> ({...prev, phoneNumber: e.target.value}))}
 										style={{background: '#fff'}}
 									/>
@@ -608,14 +626,14 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 												<div className="product-item" key={idx}>
 													<div className="product-name">
 														<span className="name">
-															{product.productName}
+															{product.product.productName}
 														</span>
 														<span className="total-count">
-															x {product.count}
+															x {product.quantity}
 														</span>
 													</div>
 													<div className="view-price">
-														<PriceDiscount valueDiscount={0} valuePrice={parseFloat((product.count*(product.price*(1-product.discount)))).toFixed(4)} />
+														<PriceDiscount valueDiscount={0} valuePrice={parseFloat((product.quantity*(product.product.price*(1-product.product.discount)))).toFixed(4)} />
 													</div>
 												</div>
 											)

@@ -3,11 +3,11 @@ import { Box, Button, CircularProgress, Divider, Grid, TextField } from "@mui/ma
 import { useEffect, useState } from 'react';
 import RemoveIcon from '@mui/icons-material/Remove';
 import Collapse from 'react-collapse';
-import { TimelineConnector, TimelineContent, TimelineDot, TimelineItem, TimelineOppositeContent, TimelineSeparator } from '@mui/lab';
 import moment from 'moment';
 import PriceDiscount from 'LogicResolve/PriceDiscount';
 import { getOrderStatus } from 'utils/logicUntils';
 import OrderAPI from 'apis/OrderAPI'
+import ProductAPI from 'apis/ProductAPI'
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import CheckIcon from '@mui/icons-material/Check';
@@ -16,39 +16,51 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { getUser } from 'hooks/localAuth';
-import { confirmCancelOrder, confirmDeliveryOrder, confirmPaymentToSeller, confirmReturnedOrder, confirmReturnOrder, getAllTransactionOrder } from 'apis/contractAPI/OrderAPI';
+import { confirmCancelOrder, confirmDeliveryOrder, confirmPaymentToSeller, confirmReturnedOrder, confirmReturnOrder, getAllTransactionOrder, handleWithDrawForBuyerWhenSellerNotConfirm, handleWithDrawForSellerWhenDeliveryExpired, handleWithDrawForBuyerWhenReturnExpired } from 'apis/contractAPI/OrderAPI';
 import { getContract } from 'helpers';
 import { useLibrary } from 'hooks/contract';
 import { useWeb3React } from '@web3-react/core';
 import { injected } from 'components/Wallet';
 import ETHIcon from "../../assets/icons/ethereum-eth.svg";
 import useNotification from 'hooks/notification';
+import WarningIcon from '@mui/icons-material/Warning';
+import Timeline from './Timeline';
 
 const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, setTitle, activeOrder, setActiveOrder}) => {
     const library = useLibrary()
 	const { active, activate, error } = useWeb3React();
     const [isExpand, setIsExpand] = useState(false)
+    const [fetchTransaction, setFetchTransaction] = useState(false)
     const data = [1, 2, 3, 4]
     const [detailOrder, setDetailOrder] = useState({})
     const [loading, setLoading] = useState(false)
     const [actorsOrder, setActorOrder] = useState({buyer: {}, seller: {}})
     const [statusKey, setStatusKey] = useState(Number(order?.state))
+    const [transactions, setTransactions] = useState([])
 
     const isBuyer = order?.buyer?.toLowerCase() === getUser()?.walletAddress?.toLowerCase()
+    const isExpired = Number(order?.dealine) < moment(Date.now()).toDate().getTime()
 
     useEffect(()=> {
         if(!isExpand) return 
+        console.log({order});
         const getDetailFromDB = async() => {
             setLoading(true)
-            await OrderAPI.getOrderByAddress(order?.orderAddress).then((res)=> {
+            const contractOrder = await getContractOrder() 
+            await OrderAPI.getOrderByAddress(order?.orderAddress, {buyer: order?.buyer, seller: order?.seller}).then(async(res)=> {
                 setDetailOrder(res?.data?.order)
-                console.log(res);
+                await getAllTransactionOrder(contractOrder).then((res)=> {
+                    console.log(res);
+                    setTransactions([...res])
+                }).catch((e)=> {
+                    console.log({e});
+                })
             })
             .then(()=> setLoading(false))
             .catch(()=> setLoading(false))
         }
         getDetailFromDB()
-    }, [isExpand])   
+    }, [isExpand, fetchTransaction])  
     
     useEffect(()=> {
         if (active) {
@@ -65,12 +77,26 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
 		return await getContract(library, order?.orderAddress, "Order");
 	};
 
+    console.log({detailOrder});
+
+    const createProductWhenPayment = async() => {
+        const data = {
+            orderAddress: order.orderAddress,
+            buyerId: detailOrder?.details?.buyer?._id
+        };
+        await ProductAPI.createProductsWhenPayment(data).then((res)=> {
+            console.log(res);
+        }).catch((e)=> {
+            console.log(e);
+        })
+    }
+
     const handleConfirmOrder = async() => {
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận đơn xuất kho')
         const contract = await getContractOrder()
-        await confirmDeliveryOrder(contract, order?.seller).then((res)=> {
+        await confirmDeliveryOrder(contract, order?.seller, moment(Date.now()).add(10, 'minutes').toDate().getTime()).then((res)=> {
             console.log({res});
             useNotification.Success({
                 title: "Thành công",
@@ -94,16 +120,26 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
         setActiveOrder(order?.orderAddress)
         setTitle('Đang gửi tiền cho công ty xuất kho.')
         const contract = await getContractOrder()
-        await confirmPaymentToSeller(contract, order?.buyer).then((res)=> {
+        await confirmPaymentToSeller(contract, order?.buyer).then(async(res)=> {
             console.log({res});
-            useNotification.Success({
-                title: "Thành công",
-                message: "Hoàn tất thanh toán tiền cho công ty xuất kho!",
-                duration: 3000,
-              });
+            const data = {
+                orderAddress: order.orderAddress,
+                buyerId: detailOrder?.details[0]?.buyer?._id
+            };
+            await ProductAPI.createProductsWhenPayment(data).then((res)=> {
+                console.log(res);
+                useNotification.Success({
+                    title: "Thành công",
+                    message: "Hoàn tất thanh toán tiền cho công ty xuất kho!",
+                    duration: 3000,
+                  });
+                }).catch((e)=> {
+                    console.log(e);
+                })
             setStatusKey(3)
             setLoadingEvent(false)
-        }).catch(()=> {
+        }).catch((e)=> {
+            console.log(e);
             useNotification.Error({
                 title: "Thất bại",
                 message: "Xác nhận gửi tiền cho công ty xuất kho thất bại!",
@@ -140,9 +176,9 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     const handleReturnOrder = async() => {
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
-        setTitle('Đang xác nhận hoàn đơn hàng nhập kho.')
+        setTitle('Đang xác nhận hoàn trả đơn hàng nhập kho.')
         const contract = await getContractOrder()
-        await confirmReturnOrder(contract, order?.buyer).then((res)=> {
+        await confirmReturnOrder(contract, order?.buyer, moment(Date.now()).add(15, 'days').toDate().getTime()).then((res)=> {
             console.log({res});
             useNotification.Success({
                 title: "Thành công",
@@ -164,7 +200,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     const handleConfirmReceiveReturnOrder = async() => {
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
-        setTitle('Đang xác nhận nhận đơn hàng đã được hoàn trả thành công.')
+        setTitle('Đang xác nhận đã nhận được đơn hàng hoàn trả.')
         const contract = await getContractOrder()
         await confirmReturnedOrder(contract, order?.seller).then((res)=> {
             console.log({res});
@@ -185,6 +221,89 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
         })
     } 
 
+    const withDrawForBuyerWhenSellerNotConfirm = async() => {
+        console.log('wating');
+        setLoadingEvent(true)
+        setActiveOrder(order?.orderAddress)
+        setTitle('Đang xác nhận hủy và rút tiền vì công ty xuất kho quá hạn xác nhận đơn hàng.')
+        const contract = await getContractOrder()
+        await handleWithDrawForBuyerWhenSellerNotConfirm(contract, order?.buyer).then((res)=> {
+            console.log({res});
+            useNotification.Success({
+                title: "Thành công",
+                message: "Xác nhận hủy và rút tiền vì công ty xuất kho quá hạn xác nhận đơn hàng thành công!",
+                duration: 3000,
+              });
+            setStatusKey(2)
+            setLoadingEvent(false)
+        }).catch((e)=> {
+            console.log({e});
+            useNotification.Error({
+                title: "Thất bại",
+                message: "Xác nhận hủy và rút tiền vì công ty xuất kho quá hạn xác nhận đơn hàng không thành công!",
+                duration: 3000,
+              });
+            setLoadingEvent(false)
+        })
+    }
+
+    const withDrawForSellerWhenDeliveryExpired = async() => {
+        setLoadingEvent(true)
+        setActiveOrder(order?.orderAddress)
+        setTitle('Đang xác nhận rút tiền khi thời gian vận chuyển hàng hết hạn.')
+        const contract = await getContractOrder()
+        await handleWithDrawForSellerWhenDeliveryExpired(contract, order?.seller).then(async(res)=> {
+            console.log({res});
+            const data = {
+                orderAddress: order.orderAddress,
+                buyerId: detailOrder?.details[0]?.buyer?._id
+            };
+            await ProductAPI.createProductsWhenPayment(data).then((res)=> {
+                console.log(res);
+                useNotification.Success({
+                    title: "Thành công",
+                    message: "Hoàn tất xác nhận thanh toán và rút tiền!",
+                    duration: 3000,
+                  });
+                }).catch((e)=> {
+                    console.log(e);
+                })
+            setStatusKey(3)
+            setLoadingEvent(false)
+        }).catch(()=> {
+            useNotification.Error({
+                title: "Thất bại",
+                message: "Xác nhận rút tiền khi thời gian vận chuyển hàng hết hạn không thành công!",
+                duration: 3000,
+              });
+            setLoadingEvent(false)
+        })
+    }
+
+    const withDrawForBuyerWhenReturnExpired = async() => {
+        setLoadingEvent(true)
+        setActiveOrder(order?.orderAddress)
+        setTitle('Đang xác nhận rút tiền khi thời gian hoàn trả hàng hết hạn.')
+        const contract = await getContractOrder()
+        await handleWithDrawForBuyerWhenReturnExpired(contract, order?.buyer).then((res)=> {
+            console.log({res});
+            useNotification.Success({
+                title: "Thành công",
+                message: "Xác nhận rút tiền khi thời gian hoàn trả hàng hết hạn thành công!",
+                duration: 3000,
+              });
+            setStatusKey(5)
+            setLoadingEvent(false)
+        }).catch(()=> {
+            useNotification.Error({
+                title: "Thất bại",
+                message: "Xác nhận rút tiền rút tiền khi thời gian hoàn trả hàng hết hạn không thành công!",
+                duration: 3000,
+              });
+            setLoadingEvent(false)
+        })
+    }
+
     const renderButtonAction = () => {
         const status = getOrderStatus(statusKey)
         switch (status) {
@@ -193,36 +312,64 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                 return (
                     <>
                         <Button variant="contained" color="warning" onClick={handleConfirmOrder}>
-                            CONFIRM
+                            XÁC NHẬN
                         </Button>
                         <Button variant="contained" color="error" onClick={handleCancelOrder}>
-                            CANCEL
+                            HỦY ĐƠN
                         </Button>
                     </>
                 )
+                
+                if(isBuyer && isExpired) {
+                    return(
+                        <>
+                            <Button variant="contained" color="warning" onClick={withDrawForBuyerWhenSellerNotConfirm}>
+                                HỦY ĐƠN & HOÀN TIỀN
+                            </Button>
+                        </>
+                    )
+                }
                 break;
             case 'CONFIRMED':
                 if(isBuyer) 
                 return (
                     <>
                         <Button variant="contained" color="info" onClick={handlePaymentToSeller}>
-                            PAYMENT
+                            THANH TOÁN
                         </Button>
                         <Button variant="contained" color="inherit" onClick={handleReturnOrder}>
-                            RETURN
+                            HOÀN TRẢ HÀNG
                         </Button>
                     </>
                 )
+                if(!isBuyer && isExpired) {
+                    return (
+                        <>
+                            <Button variant="contained" color="warning" onClick={withDrawForSellerWhenDeliveryExpired}>
+                                XÁC NHẬN THANH TOÁN VÀ RÚT TIỀN
+                            </Button>
+                        </>
+                    )
+                }
                 break;
             case 'RETURN':
                 if(!isBuyer)
                 return (
                     <>
                         <Button variant="contained" color="secondary" onClick={handleConfirmReceiveReturnOrder}>
-                            RETURNED
+                            ĐÃ NHẬN ĐƯỢC HÀNG HOÀN TRẢ
                         </Button>
                     </>
-                )
+                ) 
+                if(isExpired && isExpired) {
+                    return (
+                        <>
+                            <Button variant="contained" color="secondary" onClick={withDrawForBuyerWhenReturnExpired}>
+                                XÁC NHẬN ĐÃ HOÀN TRẢ VÀ HOÀN TIỀN
+                            </Button>
+                        </>
+                    )
+                }
                 break;
             default:
                 return (<></>)
@@ -236,46 +383,81 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             case 'PENDING':
                 return (
                     <Button variant="outlined" color="warning">
-                        PENDING <MoreHorizIcon />
+                        CHỜ XÁC NHẬN <MoreHorizIcon />
                     </Button>
                 )
                 break;
             case 'CONFIRMED':
                 return (
                     <Button variant="outlined" color="info">
-                        CONFIRMED <CheckIcon />
+                        ĐÃ XÁC NHẬN <CheckIcon />
                     </Button>
                 )
             case 'CANCEL':
                 return (
                     <Button variant="outlined" color="error">
-                        CANCEL <CancelIcon />
+                        ĐÃ HỦY <CancelIcon />
                     </Button>
                 )
                 break;
             case 'SUCCESS':
                 return (
                     <Button variant="outlined" color="success">
-                        SUCCESS <DoneAllIcon />
+                        THÀNH CÔNG <DoneAllIcon />
                     </Button>
                 )
                 break;
             case 'RETURN':
                 return (
                     <Button variant="outlined" color="secondary">
-                        RETURN <KeyboardReturnIcon />
+                        ĐANG HOÀN TRẢ <KeyboardReturnIcon />
                     </Button>
                 )
                 break;
             case 'RETURNED':
                 return (
                     <Button variant="outlined" color="primary">
-                        RETURNED <FileDownloadIcon />
+                        ĐÃ HOÀN TRẢ <FileDownloadIcon />
                     </Button>
                 )
                 break;
+        }
     }
+
+    const renderTextExpired = () => {
+        const status = getOrderStatus(statusKey)
+        if(status === 'PENDING') {
+            if(isBuyer) return 'Đơn hàng đã quá hạn xác nhận. Bạn có thể xác nhận hủy đơn và rút tiền từ hóa đơn!'
+            if(!isBuyer) return 'Đơn hàng đã quá hạn xác nhận sau 5 ngày lập đơn'
+        }
+        if(status === 'CONFIRMED') {
+            if(!isBuyer) return 'Đơn hàng đã quá hạn vận chuyển. Bạn có thể xác nhận thanh toán và rút tiền đơn hàng từ hóa đơn!'
+            if(isBuyer) return 'Đơn hàng đã quá hạn vận chuyển sau 15 ngày xác nhận đơn'
+        }
+        if(status === 'RETURN') {
+            if(isBuyer) return 'Đơn hàng đã quá hạn hoàn trả. Bạn có thể xác nhận đã hoàn trả thành công và rút tiền từ hóa đơn!'
+            if(!isBuyer) return 'Đơn hàng đã quá hạn hoàn trả sau 15 ngày xác nhận hoàn trả'
+        }
     }
+
+    const renderTextSuggest = () => {
+        const status = getOrderStatus(statusKey)
+        if(status === 'PENDING') {
+            if(isBuyer) return 'Hạn xác nhận hoặc hủy đơn sau 5 ngày. Bạn có thể hoàn tiền của mình sau 5 ngày khi đơn chưa được xác nhận hoặc hủy đơn!'
+            if(!isBuyer) return 'Hạn xác nhận hoặc hủy đơn sau 5 ngày lập đơn. Vui lòng xác nhận hoặc hủy đơn đúng hạn!'
+        }
+        if(status === 'CONFIRMED') {
+            if(!isBuyer) return 'Hạn thanh toán hoặc xác nhận hoàn trả sau 15 ngày. Bạn có thể rút tiền của mình sau 15 ngày nếu đơn chưa thanh toán hoặc xác nhận hoàn trả!'
+            if(isBuyer) return 'Hạn thanh toán hoặc xác nhận hoàn trả sau 15 ngày xác nhận. Vui lòng thành toàn hoặc xác nhận hoàn trả đúng hạn!'
+        }
+        if(status === 'RETURN') {
+            if(isBuyer) return 'Hạn xác nhận hoàn trả thành công sau 15 ngày. Bạn có thể hoàn tiền của mình sau 15 ngày khi đơn chưa xác nhận đã nhận được hàng hoàn trả!'
+            if(!isBuyer) return 'Hạn đã nhận được hàng hoàn trả sau 15 ngày kể từ khi xác nhận hoàn trả. Vui lòng xác nhận nhận được hàng hoàn trả đúng hạn!'
+        }
+        
+    }
+
+    const isRenderWarning = getOrderStatus(statusKey) === 'PENDING' || getOrderStatus(statusKey) === 'CONFIRMED' || getOrderStatus(statusKey) == 'RETURN'
 
     return (
         <div className="order-detail">
@@ -314,7 +496,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                                 <Grid item xs={12}>
                                     <div className='info-user'>
                                         <label>Địa chỉ công ty xuất kho: </label>
-                                        <span>{'0xf8a8F06dEF170fbD1DB7f04FF561eDf8d7aC1846'}</span>
+                                        <span>{order?.seller}</span>
                                     </div>
                                 </Grid>
                                 <Grid item xs={12} style={{display: 'flex', justifyContent: 'left'}}>
@@ -325,11 +507,29 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                                 </Grid>
                             </>
                         }
+                        {
+                            isRenderWarning && (
+                                isExpired ? 
+                                <Grid item xs={12}>
+                                    <div className='info-user'>
+                                        <WarningIcon fontSize='large' color='error'/>
+                                        <span style={{color: 'red', textAlign:'left', marginLeft: 5}}>{renderTextExpired()}</span>
+                                    </div>
+                                </Grid> :
+                                <Grid item xs={12}>
+                                    <div className='info-user'>
+                                        <WarningIcon fontSize='large' htmlColor='#F2C22F'/>
+                                        <span style={{color: '#F2C22F', textAlign:'left', marginLeft: 5}}>{renderTextSuggest()}</span>
+                                    </div>
+                                </Grid>
+
+                            )
+                        }
                     </Grid>
                     <Grid item container xs={2} style={{borderRight: '1px solid rgba(0, 0, 0, 0.09)', marginTop: '-10px'}}>
                         <div className='col-order'>
                             <label>Ngày lập đơn</label>
-                            <span style={{color: 'tomato'}}>{moment(Number(order?.purchaseTime)*1000).format("DD-MM-YYYY h:mm:ss")}</span>
+                            <span style={{color: 'tomato'}}>{moment(Number(order?.purchaseTime)*1000).format("DD-MM-YYYY LTS")}</span>
                         </div>        
                     </Grid>
                     <Grid item container xs={2} style={{borderRight: '1px solid rgba(0, 0, 0, 0.09)', marginTop: '-10px'}}>
@@ -343,7 +543,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                             <label className='col-order'>Tổng thanh toán</label>
                             <span className='total-price'>
                                 <img src={ETHIcon} alt='' style={{ width: 35, height: 35, marginRight: 5 }}/>
-                                <span>{order?.totalPrice}</span>ETH
+                                <span>{parseFloat((order?.totalPrice)/1000000000000000000)}</span>ETH
                             </span>
                         </div>
                     </Grid>
@@ -364,40 +564,22 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                     <Collapse isOpened={isExpand}>
                         <div className='collapse-container'>
                             <Grid container spacing={2} style={{marginTop: 10}}>
-                            <Grid item xs={6} style={{borderRight: '1px solid rgba(0, 0, 0, 0.09)'}}>
-                                <div className='info-timeline'>
-                                    {
-                                        // histories.sort((a, b)=> new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                                        data?.map((item, index) => (
-                                            <TimelineItem key={index}>
-                                                <TimelineOppositeContent sx={{maxWidth: 200, color:'#cc2f2f', fontSize:'16px',fontWeight: 600}}>
-                                                    {moment(item?.createdAt).format('YYYY-MM-DD LTS')}
-                                                </TimelineOppositeContent>
-                                                <TimelineSeparator>
-                                                    <TimelineDot />
-                                                    {
-                                                        index != data.length-1 && 
-                                                        <TimelineConnector />
-                                                    }
-                                                </TimelineSeparator>
-                                                <TimelineContent sx={{ color: 'black', fontSize:'14px', marginBottom:'20px' }}>
-                                                    <Box>
-                                                        <div style={{height: 70}}>
-                                                            PENDING
-                                                        </div>
-                                                    </Box>
-                                                </TimelineContent>
-                                            </TimelineItem>
-                                        ))
-                                    }
-                                </div>
+                            <Grid item xs={6} style={{borderRight: '1px solid rgba(0, 0, 0, 0.09)', position: 'relative'}}>
+                                <Timeline 
+                                    order={order} 
+                                    library={library} 
+                                    transactions={transactions} 
+                                    isExpired={isExpired} 
+                                    detailOrder={detailOrder}
+                                    isBuyer={isBuyer}
+                                />
                             </Grid>
                             <Grid item xs={6} style={{marginTop: '-30px'}}>
                                 <div className='info-user'>
                                     <h3 style={{marginLeft: 10, marginBottom: 5}} className='text-monospace'>CHI TIẾT</h3>
                                     <div className='info-address'>
                                         <label>Địa chỉ giao hàng: </label>
-                                    <span>{detailOrder?.address?.value || 'Quế sơn, Quảng Nam'}</span>
+                                    <span>{detailOrder?.address}</span>
                                     </div>
                                     <div className='info-address'>
                                         <label>Điện thoại liên hệ: </label>
@@ -416,7 +598,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                                             rows={3}
                                             maxRows={3}
                                             style={{background: '#fff', marginLeft: 20, marginBottom: 10}}
-                                            value={'helo mn '}
+                                            value={detailOrder?.note || 'Không có ghi chú'}
                                         />
                                     </Grid>
                                     <div className="wrapper-payment__info">
@@ -427,14 +609,14 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                                                         <div className="product-item" key={idx}>
                                                             <div className="product-name">
                                                                 <span className="name">
-                                                                    {product.product}
+                                                                    {product.product?.productName}
                                                                 </span>
                                                                 <span className="total-count">
-                                                                    x {product.quantity}
+                                                                    x {product?.quantity}
                                                                 </span>
                                                             </div>
                                                             <div className="view-price">
-                                                                <PriceDiscount valueDiscount={0} valuePrice={product?.priceDis*product.quantity} />
+                                                                <PriceDiscount valueDiscount={0} valuePrice={parseFloat(product?.priceDis*product?.quantity)} />
                                                             </div>
                                                         </div>
                                                     )

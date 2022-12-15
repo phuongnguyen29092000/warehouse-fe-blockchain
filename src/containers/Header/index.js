@@ -25,6 +25,7 @@ const Header = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { accountUser } = useSelector((store) => store.user)
+  const { cartData } = useSelector((store) => store.cart)
 	const { active, deactive, account } = useWeb3React();
 
   const handleChange = (event) => {
@@ -70,22 +71,13 @@ const Header = () => {
               marginLeft: 30,
             }}
           >
-            {/* <Link style={{ textDecoration: "none", width: 90 }} to={!Object.keys(account)?.length ? '/dang-nhap' : `/kho/${account._id}`}>
-              <div style={{ width: "100%", height: 30 }}>
-                <PersonIcon fontSize="medium" color="action" />
-              </div>
-              <span style={{ fontSize: 12, color: "#292929" }}>
-                My Warehouse
-              </span>
-            </Link>  */}
-
             <Link style={{ textDecoration: "none", width: 90, position: 'relative'}} to={"/gio-hang"}>
               <div style={{ width: "100%", height: 30 }}>
                 <ShoppingCartIcon fontSize="medium" color="action" />
               </div>
               <span style={{ fontSize: 12, color: "#292929" }}>Cart</span>
               {
-                !!(JSON.parse(localStorage.getItem('products')))?.length && 
+                !!cartData?.products?.length && 
                 <div style={{position: 'absolute', top: '-8px', right: 25}}>
                     <div
                       style={{
@@ -99,7 +91,7 @@ const Header = () => {
                         color: '#fff'
                       }}
                     >
-                      <span style={{fontSize: 10}}>{(JSON.parse(localStorage.getItem('products')))?.length}</span>
+                      <span style={{fontSize: 10}}>{cartData?.products?.length}</span>
                     </div>
                 </div>
               }

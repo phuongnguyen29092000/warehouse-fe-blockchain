@@ -77,6 +77,12 @@ const ListSubCategoryAdmin = () => {
                                             }}>
                                                 <EditIcon fontSize='15px' />
                                             </div>
+                                            <div className='btn-action btn-delete' onClick={()=>{
+                                                        // setProductDelete({id: _product._id, productName: _product.productName})
+                                                        // setOpenConfirmModal(true)
+                                            }}>
+                                                <DeleteOutlineIcon fontSize='15px' />
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

@@ -27,6 +27,7 @@ const CategoryParent = ({cat, cateActiveHover, setCateActiveHover, queriesData, 
         justifyContent: "space-between",
         fontWeight: 700,
         fontSize: 15,
+        height: 24,
         cursor: "pointer",
         borderLeft:
           cateActiveHover === cat.parent._id &&
@@ -45,13 +46,20 @@ const CategoryParent = ({cat, cateActiveHover, setCateActiveHover, queriesData, 
         setHover('');
       }}
       onClick={() => {
+        if(cat.parent._id === 'all') {
+          setCateActiveHover('all');
+          setQueriesData({...queriesData, categoryId: '', subCategoryId: '', skip: 1})
+          return
+        }
         setCateActiveHover(cat.parent._id);
         setQueriesData({...queriesData, categoryId: cat.parent._id, subCategoryId: '', skip: 1})
       }}
     >
       <span>{cat?.parent.name}</span>
       {
-        expand ? 
+        cat.parent._id !== 'all' &&
+        (
+          expand ? 
           <div style={style} onClick={(e)=> {
             e.stopPropagation()
             setExpand(!expand)
@@ -65,6 +73,7 @@ const CategoryParent = ({cat, cateActiveHover, setCateActiveHover, queriesData, 
           }}>
             <KeyboardArrowRightIcon sx={{ transition: "0.5s" }} />
           </div>
+        )
       }
     </div>
     {(!isEmpty(cat.childrens) && expand) &&
@@ -115,12 +124,16 @@ const CategoryParent = ({cat, cateActiveHover, setCateActiveHover, queriesData, 
 const Category = ({queriesData, setQueriesData}) => {
   const dispatch = useDispatch();
   const { categories } = useSelector((store) => store.category);
-  const [cateActiveHover, setCateActiveHover] = useState("");
+  const [cateActiveHover, setCateActiveHover] = useState("all");
+  const [data, setData] = useState([])
 
   useEffect(() => {
     if(categories?.length) return 
-    dispatch(getAllCategory());
+    dispatch(getAllCategory((res)=>{
+      if(res) setData([{parent: { _id: 'all', name: 'Tất cả danh mục'}, childrens: []}, ...res])
+    }));
   }, []);
+
   return (
     <div style={{ display: "flex", width: "100%" }}>
       {categories.loading ? (
@@ -129,8 +142,8 @@ const Category = ({queriesData, setQueriesData}) => {
         <div
           style={{ display: "flex", width: "100%", flexDirection: "column" }}
         >
-          {!!categories?.length &&
-            categories.map((cat, idx) => {
+          {!!data?.length &&
+            data.map((cat, idx) => {
               return (
                 <CategoryParent key={idx} cat={cat} cateActiveHover={cateActiveHover} setCateActiveHover={setCateActiveHover} queriesData={queriesData} setQueriesData={setQueriesData}/>
               );

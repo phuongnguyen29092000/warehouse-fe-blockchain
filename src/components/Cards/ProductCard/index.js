@@ -8,8 +8,12 @@ import Typography from "@mui/material/Typography";
 import PriceDiscount from "../../../LogicResolve/PriceDiscount";
 import Rating from "@mui/material/Rating";
 import { styled } from "@mui/material/styles";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import moment from "moment";
+import { useDispatch, useSelector } from "react-redux";
+import useNotification from "hooks/notification";
+import { addOrUpdateCart } from "redux/reducers/cart/action";
+import { isEmpty } from "lodash";
 
 const StyledRating = styled(Rating)({
   "& .MuiRating-iconFilled": {
@@ -38,26 +42,47 @@ export default function ProductCard({
   handleEdit,
   handleDelete
 }) {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
   const [shadow, setShadow] = React.useState(false);
   const onMouseOver = () => setShadow(true);
   const onMouseOut = () => setShadow(false);
   const handleOnClick = () => {
     //
   };
+  const { accountUser} = useSelector((store)=> store.user)
+  const { cartData} = useSelector((store)=> store.cart)
 
   const handleAddToCart = (detail) => {
-    setOpenDrawerCart(true);
-    const products = JSON.parse(localStorage.getItem("products"))?.length
-      ? JSON.parse(localStorage.getItem("products"))
-      : [];
-    if (!products.every((item) => !item._id.includes(detail._id))) return;
-    localStorage.setItem(
-      "products",
-      JSON.stringify([
-        ...products,
-        {...detail, count: minimumQuantity},
-      ])
-    );
+    if(!Object.keys(accountUser)?.length) {
+      useNotification.Error({
+        title: "Chú ý!",
+        message:`Vui lòng đăng nhập để mua hàng!`,
+        duration: 3000
+      })
+      navigate('/dang-nhap')
+      return 
+    }
+    const existProduct = cartData?.products?.filter((p)=> p?.product._id.toString()?.includes(detail._id.toString()))
+    if(!isEmpty(existProduct)) {
+        useNotification.Error({
+            title: "Chú ý!",
+            message:`Sản phẩm đã có trong giỏ hàng!`,
+            duration: 3000
+        })
+        setOpenDrawerCart(true);
+        return 
+    }
+    const data = {
+      product: detail._id,
+      quantity: minimumQuantity
+    }
+    dispatch(addOrUpdateCart(accountUser?._id, data, (res)=> {
+      if(res) {
+        setOpenDrawerCart(true);
+        console.log({res});
+      }
+    }))
   };
 
   return (

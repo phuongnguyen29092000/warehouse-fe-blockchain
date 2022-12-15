@@ -5,38 +5,52 @@ import { Button} from "@mui/material";
 import Spinner from "components/Spinner";
 import EmptyCart from '../../public/emptyCart.jpg'
 import ShopIcon from '@mui/icons-material/Shop';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getWarehouseAdress, getContract } from "helpers";
 import { useLibrary } from "hooks/contract";
 import Order from "components/Order";
 import { isEmpty } from "lodash";
 import WaitingMessage from "components/common/WaitingMessage";
 import { Loading } from "react-loading-dot/lib";
+import useNotification from "hooks/notification";
+import { getCartByUser } from "redux/reducers/cart/action";
+import { getUser } from "hooks/localAuth";
+import { handleGroupByUser } from "utils/logicUntils";
 
 const CartPage = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
-    const [loading, setLoading] = useState(false)
-    const [data, setData] = useState([]);
     const library = useLibrary();
+    // const {accountUser} = useSelector((store)=> store.user)
+	const accountUser = getUser() || {}
+
+    const {cartData} = useSelector((store)=> store.cart)
+    const [loading, setLoading] = useState(false)
+    const [dataOrders, setDataOrders] = useState([]);
     const [titleLoading, setTitleLoading] = useState(false)
     const [loadingEvent, setLoadingEvent] = useState(false)
   
     useEffect(()=> {
-        document.title = 'Giỏ hàng'  
-        const productsStore = JSON.parse(localStorage.getItem("products"))
-        if (!productsStore?.length) return;
-        setData(handleGroupByUser(productsStore))
-    },[])
+        console.log(!Object.keys(accountUser)?.length);
+		if(!Object.keys(accountUser)?.length) {
+			useNotification.Error({
+			  title: "Chú ý!",
+			  message:`Vui lòng đăng nhập để mua hàng!`,
+			  duration: 3000
+			})
+			navigate('/dang-nhap')
+			return 
+		}
+	}, [])
 
-    const handleGroupByUser = (data) => {
-        const rs = data.reduce((group, item)=> {
-            if(!group[item.user._id]) group[item.user._id] = []
-            group[item.user._id].push(item)
-            return group
-        }, {})
-        return Object.values(rs)
-    }
+    useEffect(()=> {
+        document.title = 'Giỏ hàng'  
+        dispatch(getCartByUser(accountUser?._id, (res)=> {
+            if(res) {
+                setDataOrders(handleGroupByUser(res?.products))
+            }
+        }))
+    },[])
 
 	const getcontract = async () => {
 		return await getContract(library, getWarehouseAdress());
@@ -55,7 +69,7 @@ const CartPage = () => {
         position="fixed"
         style={{
             marginTop: 100,
-            backgroundColor: data?.length !== 0 ? "rgb(244, 244, 244)" : '#fff',
+            backgroundColor: dataOrders?.length !== 0 ? "rgb(244, 244, 244)" : '#fff',
             paddingRight: "0 !important",
             padding: '0 100px 50px 100px',
             height: '100%',
@@ -64,7 +78,7 @@ const CartPage = () => {
         }}
         >
             { 
-                isEmpty(data) ? 
+                isEmpty(dataOrders) ? 
                     <div className="empty-cart">
                     <span style={{fontSize: 18, fontWeight: 600, color: '#292929'}}>
                         Giỏ hàng của bạn hiện chưa có sản phẩm nào!
@@ -79,7 +93,7 @@ const CartPage = () => {
                 : 
                 <div className="list-order-user">
                     {
-                        data?.map((order, idx)=> {
+                        dataOrders?.map((order, idx)=> {
                             return (
                                 <Order 
                                     key={idx}
@@ -88,6 +102,7 @@ const CartPage = () => {
                                     setTitleLoading={setTitleLoading}
                                     setLoadingEvent={setLoadingEvent}
                                     loadingEvent={loadingEvent}
+                                    setDataOrders={setDataOrders}
                                 />
                             )
                         })

@@ -16,9 +16,9 @@ const getOrderById = (id) => {
 	return axiosClient.get(url)
 }
 
-const getOrderByAddress = (address) => {
+const getOrderByAddress = (address, data) => {
 	const url = `/order/wallet/${address}`
-	return axiosClient.get(url)
+	return axiosClient.post(url ,data, {headers: getHeaderWithToken()})
 }
 
 const updateOrder = (id, data) => {

@@ -46,7 +46,7 @@
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 
-const IFURA_ID = "28f6cf4eab654d75aeb84109f429bba6";
+const IFURA_ID = "a90dd2a2733a4204ad2a7ffeec1ecb33";
 
 const fs = require("fs");
 const mnemonic = fs.readFileSync(".secret").toString().trim();
