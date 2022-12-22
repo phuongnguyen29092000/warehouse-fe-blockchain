@@ -18,7 +18,7 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
     useEffect(()=> {
         if(!order) return 
         if(order?.state === '5') setData(transactions.filter((t, idx)=> {
-            return idx !== 3
+            return idx !== 4
         }))
         else setData([...transactions])
     }, [])
@@ -151,7 +151,7 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                     <tbody>
                         {
                             transactions &&
-                            transactions?.filter((t)=> ![1, 2, 4].includes(Number(t?.state)))?.map((t, index) =>(
+                            transactions?.filter((t)=> ![1, 4].includes(Number(t?.state)))?.map((t, index) =>(
                                 <tr key={index} style={{borderBottom:'5px solid white'}}>
                                     <td className='td-1'>{moment((Number(t?.timestamp))*1000).format('YYYY-MM-DD LTS')}</td>
                                     <td className='td-1'>{t?.beneficiaryAccount}</td>

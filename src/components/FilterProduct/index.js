@@ -17,6 +17,7 @@ import { Container } from "@mui/system";
 import { debounce } from "lodash";
 import SearchIcon from '@mui/icons-material/Search';
 import { useState } from "react";
+import CloseIcon from '@mui/icons-material/Close';
 
 const FilterProduct = ({ queriesData, setQueriesData, manage = false}) => {
   const [search, setSearch] = useState('')
@@ -199,9 +200,18 @@ const FilterProduct = ({ queriesData, setQueriesData, manage = false}) => {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment>
-                        <div onClick={handleSearchName}>
-                          <SearchIcon sx={{cursor: 'pointer'}}/>
-                        </div>
+                        {
+                          queriesData?.s ?
+                          <div onClick={()=> {
+                            setQueriesData((prev)=> ({...prev, s: ''}))
+                            setSearch('')
+                        }}>  
+                            <CloseIcon sx={{cursor: 'pointer'}}/>
+                        </div> : 
+                          <div onClick={handleSearchName}>
+                            <SearchIcon sx={{cursor: 'pointer'}}/>
+                          </div>
+                        }
                     </InputAdornment>
                   )
                 }}

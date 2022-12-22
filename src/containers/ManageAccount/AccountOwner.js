@@ -69,7 +69,6 @@ const AccountOwner = () => {
     useEffect(() => {
 		setLoading(true)
 		const fetchProvinces = async() => {
-			
 			await getProvince().then(res=> {
 			const data = res.data.data.map((pro)=> ({...pro, label: pro.name, value: pro.name}))
 			setStateAddress((prev)=> ({
@@ -87,7 +86,7 @@ const AccountOwner = () => {
         const data = new FormData(event.currentTarget);
         console.log(selectedWard);
         const address = {
-            value: `${stateMoreInfo.detailAddress && `${stateMoreInfo.detailAddress}`} ${stateMoreInfo?.wardId && `${stateMoreInfo.ward},` } ${selectedDistrict?.id && `${selectedDistrict.name},` } ${selectedCity?.id && `${selectedCity.name}` }`,
+            value: `${stateMoreInfo.detailAddress && `${stateMoreInfo.detailAddress},`} ${stateMoreInfo?.wardId && `${stateMoreInfo.ward},` } ${selectedDistrict?.id && `${selectedDistrict.name},` } ${selectedCity?.id && `${selectedCity.name}` }`,
             province: selectedCity?.id,
             district: selectedDistrict?.id,
             ward: stateMoreInfo?.wardId,
@@ -150,7 +149,7 @@ const AccountOwner = () => {
 
       useEffect(()=> {
 		if(!Object.keys(accountUser)?.length) return
-        if(!accountUser?.province) return
+        if(!accountUser.address?.province) return
 		const fetchAddress = async () => {
 			await getProvince().then(res=> {
 				const data = res.data.data.map((pro)=> ({...pro, label: pro.name, value: pro.name}))

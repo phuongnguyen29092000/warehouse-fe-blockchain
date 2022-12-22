@@ -25,15 +25,16 @@ import { confirmPaymentToSeller, confirmPurchase, getAllTransactionOrder } from 
 import moment from "moment";
 import CompanyInfomation from "components/CompanyInfomation";
 import { useWeb3React } from "@web3-react/core";
-import { ConvertVNDToETH, handleGroupByUser } from "utils/logicUntils";
 import { injected } from "components/Wallet";
 import { deleteItemCart, deleteMultipleItemCartById } from "redux/reducers/cart/action";
 import { getUser } from "hooks/localAuth";
+import CartAPI from 'apis/CartAPI'
+import { debounce } from "lodash";
 
 const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEvent, setDataOrders}) => {
 	const navigate = useNavigate()
 	const dispatch = useDispatch()
-	const { active, activate, error, account } = useWeb3React();
+	const { active, activate, account } = useWeb3React();
  	const { newOrder } = useSelector((store)=> store.order)
  	const { cartData } = useSelector((store)=> store.cart)
  	const [loading, setLoading] = useState(false)
@@ -173,25 +174,33 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 
 		
 		}
-	const hanleChangeCount = (value, product) => {
+	const hanleChangeCount = debounce(async(value, product) => {
 		const newCount = Number(value)
 		if(newCount < product.minimumQuantity) return
 		const {_id} = product
-		const products = JSON.parse(localStorage.getItem('products'))
-		const newCarts = products.map((product)=> {
-				if(_id === product._id) return { ...product, count: newCount}
-				return product
+		console.log(product);
+		const data = {
+			productId : _id, 
+			newCount: newCount
+		}
+		await CartAPI.updateCountItemCart(accountUser?._id, data).then((res)=> {
+			if(res.status === 200) {
+				setData((prev)=> {
+					return prev?.map(p=> {
+						if(p.product._id === _id) return {
+							...p, quantity: newCount
+						}
+						return p
+					})
+				})
+				
+			}
+		}).catch(()=> {
+			console.log('err');
+			return
 		})
-		localStorage.setItem('products', JSON.stringify(newCarts));
-		setData((prev)=> {
-			return prev?.map(p=> {
-				if(p._id === _id) return {
-					...p, count: newCount
-				}
-				return p
-			})
-		})
-	}
+
+	}, 300)
 
 	const handleRemoveProduct = (id) => {
 		dispatch(deleteItemCart(accountUser?._id, {productId: id}, (res)=> {
@@ -208,6 +217,18 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 	}
 
 	const handlePayment = async() => {
+		window.ethereum.request({method: 'eth_getBalance', params: [accountUser?.walletAddress, 'latest']})
+			.then((balance)=> {
+				const currBalance = parseFloat(Number(ethers.utils.formatEther(balance)))
+				if(currBalance < (parseFloat(parseFloat(totalPrice) + parseFloat(deliveryPay)))) {
+					useNotification.Success({
+						title: "Thất bại!",
+						message:"Không đủ số dư. Vui lòng nạp tiền!",
+						duration: 4000
+					})
+					return
+				}
+			})
 		setLoadingEvent(true)
 		setTitleLoading('Đang thực hiện quá trình tạo hóa đơn. Vui lòng xác nhận!')
 		const details = data.map((product)=> {
@@ -308,6 +329,7 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 		// console.log({listOrder});
 
 	}
+	console.log({data});
 
 	if(isEmpty(data)) return null
 
@@ -375,11 +397,11 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 											type="number"
 											value={parseInt(product.quantity)}
 											style={{outline: "none", height: 25, textAlign: 'end', width: 60}}
-											onChange={(e)=> hanleChangeCount(e.target.value, product)}
+											onChange={(e)=> hanleChangeCount(e.target.value, product.product)}
 											onKeyDown={(e)=> {
 												if(e.key === "Backspace") {
 													const key = e.target.value.slice(0,-1)
-													hanleChangeCount(key, product)
+													hanleChangeCount(key, product.product)
 												}
 											}}
 										></input>

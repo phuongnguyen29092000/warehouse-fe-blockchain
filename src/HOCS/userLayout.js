@@ -1,4 +1,4 @@
-// import Footer from 'containers/Footer';
+import Footer from 'containers/Footer';
 import React, { useState } from 'react';
 import Header from '../containers/Header'
 
@@ -12,7 +12,7 @@ const UserLayout = ({
             <div className='component' style={{marginTop: 90}}>
                 <Component />
             </div>
-            {/* <Footer/> */}
+            <Footer/>
         </div>
     );
 }

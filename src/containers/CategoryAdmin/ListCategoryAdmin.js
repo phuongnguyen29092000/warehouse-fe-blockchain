@@ -8,6 +8,7 @@ import PaginationCustom from "components/common/PaginationCustom";
 import { Button } from "@mui/material";
 import ConfirmModal from "components/modal/ConfirmModal/ConfirmModal";
 import AddCategoryModal from "components/modal/addCategoryModal";
+import { setActiveUrl } from "redux/reducers/activeUrl/action";
 
 const ListCategoryAdmin = () => {
     const dispatch = useDispatch()
@@ -20,6 +21,11 @@ const ListCategoryAdmin = () => {
     const [openConfirmModal, setOpenConfirmModal] = useState(false)
     const [categorytDelete, setCategorytDelete] = useState({})
     const [categorytUpdate, setCategorytUpdate] = useState({})
+
+    useEffect(()=> {
+        document.title = 'Warehouse Protection | Quản lý danh mục'
+        dispatch(setActiveUrl('list-category'))
+    }, [])
 
     useEffect(()=> {
         if(categories?.length) return 

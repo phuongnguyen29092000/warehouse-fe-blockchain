@@ -54,6 +54,10 @@ export default function SignIn() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 	const {activate, error, active } = useWeb3React();
+  
+  React.useEffect(()=> {
+    document.title = 'Warehouse Protection | Đăng nhập'
+  }, [])
 
   const accountChangedHandler = (account) => {
     console.log(account);
@@ -106,7 +110,7 @@ export default function SignIn() {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container component="main" maxWidth="xs" style={{marginBottom: 50}}>
       <CssBaseline />
       <Grid item xs={false} sm={4} md={7} className={classes.image} />
       <Grid item xs={12} sm={8} md={5} elevation={6} square>
@@ -116,7 +120,7 @@ export default function SignIn() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            marginTop: 30,
+            marginTop: 25,
           }}
         >
           <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>

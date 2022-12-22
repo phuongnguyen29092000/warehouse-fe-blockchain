@@ -16,6 +16,7 @@ import useNotification from "hooks/notification";
 import { getCartByUser } from "redux/reducers/cart/action";
 import { getUser } from "hooks/localAuth";
 import { handleGroupByUser } from "utils/logicUntils";
+import Footer from "containers/Footer";
 
 const CartPage = () => {
     const navigate = useNavigate()
@@ -35,7 +36,7 @@ const CartPage = () => {
 		if(!Object.keys(accountUser)?.length) {
 			useNotification.Error({
 			  title: "Chú ý!",
-			  message:`Vui lòng đăng nhập để mua hàng!`,
+			  message:`Vui lòng đăng nhập để xem giỏ hàng!`,
 			  duration: 3000
 			})
 			navigate('/dang-nhap')
@@ -66,7 +67,7 @@ const CartPage = () => {
             </>
         }
         <AppBar
-        position="fixed"
+        // position="fixed"
         style={{
             marginTop: 100,
             backgroundColor: dataOrders?.length !== 0 ? "rgb(244, 244, 244)" : '#fff',

@@ -36,6 +36,12 @@ const createProductsWhenPayment = (data) => {
   return axiosClient.post(url, data, { headers: getHeaderWithToken() });
 };
 
+const returnProductToSeller = (data) => {
+  const url = "/product/return-product-seller";
+  return axiosClient.post(url, data, { headers: getHeaderWithToken() });
+};
+
+
 export default {
   addProduct,
   getAllProduct,
@@ -43,5 +49,6 @@ export default {
   updateProduct,
   deleteProduct,
   getAllProductPerCompany,
-  createProductsWhenPayment
+  createProductsWhenPayment,
+  returnProductToSeller
 };

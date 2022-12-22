@@ -128,7 +128,7 @@ const Category = ({queriesData, setQueriesData}) => {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    if(categories?.length) return 
+    // if(categories?.length) return 
     dispatch(getAllCategory((res)=>{
       if(res) setData([{parent: { _id: 'all', name: 'Tất cả danh mục'}, childrens: []}, ...res])
     }));

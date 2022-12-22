@@ -33,7 +33,7 @@ const ProductResult = ({queriesData, setQueriesData, dataResult, loading, totalC
     //     }
     // }, [search])
     useEffect(() => {
-        document.title = 'Kết quả'
+        // document.title = 'Kết quả'
         dispatch(setActiveUrl(''))
     }, [])
 

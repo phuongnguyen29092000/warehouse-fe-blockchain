@@ -6,7 +6,9 @@ import PriceDiscount from "LogicResolve/PriceDiscount";
 import ConvertToImageURL from "LogicResolve/ConvertToImageURL";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteItemCart, getCartByUser } from "redux/reducers/cart/action";
-import { isEmpty } from "lodash";
+import { debounce, isEmpty } from "lodash";
+import CartAPI from 'apis/CartAPI'
+
 
 const CartDrawer = ({ onClose }) => {
   const navigate = useNavigate();
@@ -19,7 +21,9 @@ const CartDrawer = ({ onClose }) => {
   useEffect(() => {
     if(!accountUser?._id) return
     dispatch(getCartByUser(accountUser?._id, (res)=> {
-      //
+      if(res) {
+        setData(cartData?.products)
+      }
     }))
   }, []);
 
@@ -38,18 +42,33 @@ const CartDrawer = ({ onClose }) => {
     }))
   };
 
-  const hanleChangeCount = (value, product) => {
-    const newCount = Number(value)
-    if(newCount < product.minimumQuantity) return
-    const {_id} = product
-    const products = JSON.parse(localStorage.getItem('products'))
-    const newCarts = products.map((product)=> {
-        if(_id === product._id) return { ...product, count: newCount}
-        return product
-    })
-    localStorage.setItem('products', JSON.stringify(newCarts));
-    setData(newCarts)
-  }
+  const hanleChangeCount = debounce(async(value, product) => {
+		const newCount = Number(value)
+		if(newCount < product.minimumQuantity) return
+		const {_id} = product
+		const data = {
+			productId : _id, 
+			newCount: newCount
+		}
+		await CartAPI.updateCountItemCart(accountUser?._id, data).then((res)=> {
+			if(res.status === 200) {
+				setData((prev)=> {
+					return prev?.map(p=> {
+						if(p.product._id === _id) return {
+							...p, quantity: newCount
+						}
+						return p
+					})
+				})
+				
+			}
+		}).catch(()=> {
+			console.log('err');
+			return
+		})
+
+	}, 300)
+  console.log(data);
 
   return (
     <div
@@ -75,7 +94,7 @@ const CartDrawer = ({ onClose }) => {
         loading ?  <CircularProgress color="warning" size={30} sx={{marginRight: '10px'}}/> 
         : 
         <div style={{ display: "flex", flexDirection: "column", width: "100%", height: '100%', paddingTop: 15}}>
-          {cartData?.products?.map((item,idx) => {
+          {data?.map((item,idx) => {
             return (
               <>
                 <div style={{ height: 50 }}>
@@ -110,11 +129,11 @@ const CartDrawer = ({ onClose }) => {
                           type="number"
                           value={parseInt(item.quantity)}
                           style={{ width: 50, outline: "none", height: 20}}
-                          onChange={(e)=> hanleChangeCount(e.target.value, item)}
+                          onChange={(e)=> hanleChangeCount(e.target.value, item.product)}
                           onKeyDown={(e)=> {
                             if(e.key === "Backspace") {
                                 const key = e.target.value.slice(0,-1)
-                                hanleChangeCount(key, item)
+                                hanleChangeCount(key, item.product)
                             }
                           }}
                         ></input>

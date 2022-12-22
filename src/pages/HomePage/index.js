@@ -21,7 +21,6 @@ function HomePage() {
         }))
     }, [queriesData])
 
-    console.log(queriesData);
     return (
         <div className='home-page' style={{
             background: '#f4f4f4',

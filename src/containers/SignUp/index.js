@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { signup } from "redux/reducers/user/action";
 import { useDispatch } from "react-redux";
 import {ethers} from 'ethers';
+import { useWeb3React } from "@web3-react/core";
+import { injected } from "components/Wallet";
 
 const useStyles = makeStyles(theme => ({
   "@global": {
@@ -48,6 +50,8 @@ export default function SignUp() {
   const dispatch = useDispatch()
   const [valueAddress, setValueAddress] = useState('')
   const [error, setError] = useState('')
+  const {active, activate, chainId, account} = useWeb3React();
+  const [isConnect, setIsConnect] = useState(false)
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -68,15 +72,27 @@ export default function SignUp() {
       if(res) navigate('/')
     }))
   };
+  useEffect(()=> {
+    if (active) {
+      setValueAddress(account)
+      return;
+    }
+  }, [isConnect])
 
-  const handleConnectMetamask = () => {
+  const handleConnectMetamask = async() => {
     if(window.ethereum) {
-        window.ethereum.request({method: 'eth_requestAccounts'})
-            .then(res=> {
-                accountChangedHandler(res[0])
-            })     
+      if (active) {
+        setValueAddress(account)
+        return;
+      }
+      try {
+        setIsConnect(true)
+        activate(injected);
+      } catch (ex) {
+        console.log(ex);
+      }
     } else {
-        alert('Vui lòng tải ví metamask để thanh toán!')
+        alert('Vui lòng tải ví metamask để đăng kí!')
         window.open(
             'https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn',
             '_blank'
@@ -84,22 +100,8 @@ export default function SignUp() {
     }
   }
 
-  const accountChangedHandler = (account) => {
-    setValueAddress(account)
-    getUserBalance(account);
-  }
-
-  const getUserBalance = (address) => {
-    window.ethereum.request({method: 'eth_getBalance', params: [address, 'latest']})
-        .then((balance)=> {
-            console.log(ethers.utils.formatEther(balance));
-        })
-  }
-
-  window?.ethereum?.on('accountsChanged', accountChangedHandler)
-
   return (
-    <Container component="main" maxWidth="xs">
+    <Container component="main" maxWidth="sm" style={{marginBottom: 100}}>
       <CssBaseline />
       <div className={classes.paper}>
         <Avatar className={classes.avatar}>

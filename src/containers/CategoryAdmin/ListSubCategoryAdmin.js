@@ -11,6 +11,7 @@ import { Button } from "@mui/material";
 import ConfirmModal from "components/modal/ConfirmModal/ConfirmModal";
 import AddCategoryModal from "components/modal/addCategoryModal";
 import { previousDay } from "date-fns";
+import { setActiveUrl } from "redux/reducers/activeUrl/action";
 
 const ListSubCategoryAdmin = () => {
     const dispatch = useDispatch()
@@ -25,7 +26,11 @@ const ListSubCategoryAdmin = () => {
     const [data, setData] = useState([])
 
     useEffect(()=> {
-        if(categories?.length) return 
+        document.title = 'Warehouse Protection | Quản lý danh mục con'
+        dispatch(setActiveUrl('list-subcategory'))
+    }, [])
+
+    useEffect(()=> {
         dispatch(getAllCategory((res)=> {
             res?.map((cate)=> {
                 console.log(cate);

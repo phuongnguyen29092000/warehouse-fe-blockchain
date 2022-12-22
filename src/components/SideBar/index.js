@@ -72,7 +72,7 @@ function SideBar(props) {
                     accountUser.role == "admin" && (
                         <div className='menu-list-item' style={{background: '#5584AC'}}>
                             <Link to={ROUTE_MANAGE_OWNER}>
-                                <div className={`menu-item company`}>
+                                <div className={`menu-item company ${activePage === 'list-company' ? 'active' : ''}`}>
                                     <div className='menu-item__icon'>
                                         <CompanyIcon htmlColor='#fff' fontSize='large'/>
                                         <div className='menu-item__title'>
@@ -82,7 +82,7 @@ function SideBar(props) {
                                 </div>
                             </Link>
                             <Link to={ROUTE_MANAGE_CATEGORY}>
-                                <div className={`menu-item list-customer }`}>
+                                <div className={`menu-item list-customer ${activePage === 'list-category' ? 'active' : ''}`}>
                                     <div className='menu-item__icon'>
                                         <CategoryIcon htmlColor='#fff' fontSize='large'/>
                                         <div className='menu-item__title'>
@@ -92,7 +92,7 @@ function SideBar(props) {
                                 </div>
                             </Link>
                             <Link to={ROUTE_MANAGE_SUB_CATEGORY}>
-                                <div className={`menu-item typeplace `}>
+                                <div className={`menu-item typeplace ${activePage === 'list-subcategory' ? 'active' : ''}`}>
                                     <div className='menu-item__icon'>
                                         <SubCategoryIcon htmlColor='#fff' fontSize='large'/>
                                         <div className='menu-item__title'>
@@ -102,7 +102,7 @@ function SideBar(props) {
                                 </div>
                             </Link>
                             <Link to={ROUTE_MANAGE_ACCOUNT_ADMIN}>
-                                <div className={`menu-item typeplace`}>
+                                <div className={`menu-item typeplace ${activePage === 'account-admin' ? 'active' : ''}`}>
                                     <div className='menu-item__icon'>
                                         <IconCustomer htmlColor='#fff' fontSize='large'/>
                                         <div className='menu-item__title'>

@@ -15,11 +15,13 @@ import WaitingMessage from "components/common/WaitingMessage";
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import { getOrderStatus } from "utils/logicUntils";
+import useNotification from "hooks/notification";
+import { useNavigate } from "react-router-dom";
 
 const OrderHistory = () => {
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const library = useLibrary();
-    const [isCollapse, setIsCollapse] = useState(false)
     const [orderType, setOrderType] = useState('all')
     const [loading, setLoading] = useState(false)
     const [loadingEvent, setLoadingEvent] = useState(false)
@@ -34,14 +36,26 @@ const OrderHistory = () => {
 	}
 
     useEffect(()=> {
+		if(!Object.keys(accountUser)?.length) {
+			useNotification.Error({
+			  title: "Chú ý!",
+			  message:`Vui lòng đăng nhập để xem lịch sử đơn hàng!`,
+			  duration: 3000
+			})
+			navigate('/dang-nhap')
+			return 
+		}
+	}, [])
+
+    useEffect(()=> {
         document.title = 'Warehouse Protection | Lịch sử đơn hàng'
         dispatch(setActiveUrl('order-history'))
     }, [])
 
     useEffect(()=> {
+        setLoading(true)
         const getAllOrder = async () => {
             const account = await getUser()
-            setLoading(true)
             const contract = await getContractWarehouse()
             await getOrderPerCompany(contract, account?.walletAddress).then((res)=> {
                 const temp = [...res];
@@ -53,12 +67,11 @@ const OrderHistory = () => {
                 setDataRs([...result])
             }).then(()=> setLoading(false))
         }
-        getAllOrder()
+        getAllOrder().then(()=> setLoading(false))
     }, [])
 
     useEffect(()=> {
         const filterOrder = async() => {
-            setLoading(true)
             if(queriesData?.type ==='all' && !queriesData?.state==='all' && !queriesData?.addressKey) return
             const walletAddressUser = getUser()?.walletAddress
             let temp = []
@@ -87,9 +100,7 @@ const OrderHistory = () => {
                 return order?.orderAddress?.toLowerCase() === queriesData?.addressKey?.toLowerCase()
             })))
         }
-        filterOrder().then(()=> {
-            setLoading(false)
-        })
+        filterOrder()
     }, [queriesData])
 
     return (

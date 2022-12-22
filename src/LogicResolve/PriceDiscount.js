@@ -5,7 +5,6 @@ import ETHIconDis from "../assets/icons/ethreum.eth-dis.png";
 export default function PriceDiscount({ valuePrice, valueDiscount }) {
   valuePrice = parseFloat(valuePrice);
   valueDiscount = parseInt(valueDiscount * 100);
-  console.log(valuePrice);
   return (
     <div style={{display: 'flex', alignItems: 'center', flexWrap: 'wrap'}}>
       Giá:{" "}

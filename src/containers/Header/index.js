@@ -45,11 +45,12 @@ const Header = () => {
       position="fixed"
       style={{
         minHeight: "50px",
+        height: '100px',
         backgroundColor: "#fff",
         paddingRight: "0 !important",
       }}
     >
-      <Container maxWidth="xl" sx={{ display: "flex" }}>
+      <Container maxWidth="xl" sx={{ display: "flex", height: '100%'}}>
         <div
           style={{
             width: "100%",
@@ -97,7 +98,7 @@ const Header = () => {
               }
             </Link>
 
-            <Link style={{ textDecoration: "none", width: 90 }} to={"/"}>
+            <Link style={{ textDecoration: "none", width: 90 }} to={"/owner/order-history"}>
               <div style={{ width: "100%", height: 30 }}>
                 <HistoryIcon fontSize="medium" color="action" />
               </div>

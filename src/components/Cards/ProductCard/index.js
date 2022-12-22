@@ -63,6 +63,15 @@ export default function ProductCard({
       navigate('/dang-nhap')
       return 
     }
+    if(detail?.user?._id === accountUser?._id) {
+      useNotification.Error({
+        title: "Chú ý!",
+        message:`Bạn không thể thực hiện mua sản phẩm của công ty bạn!`,
+        duration: 3000
+      })
+      return 
+    }
+    
     const existProduct = cartData?.products?.filter((p)=> p?.product._id.toString()?.includes(detail._id.toString()))
     if(!isEmpty(existProduct)) {
         useNotification.Error({
@@ -80,7 +89,6 @@ export default function ProductCard({
     dispatch(addOrUpdateCart(accountUser?._id, data, (res)=> {
       if(res) {
         setOpenDrawerCart(true);
-        console.log({res});
       }
     }))
   };
@@ -248,13 +256,14 @@ export default function ProductCard({
           >
             {description}
           </Typography>
+         
         </CardContent>
         {
           !manage ? 
             <CardActions>
               <Button
                 size="small"
-                disabled={false}
+                disabled={!dataDetail?.user.active}
                 color="warning"
                 variant="contained"
                 onClick={() => handleAddToCart(dataDetail)}

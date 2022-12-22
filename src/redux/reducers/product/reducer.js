@@ -211,8 +211,11 @@ export const reducer = (state = initialState, action) => {
       let listTemp = [...state?.productsPerCompany?.data];
       return {
         ...state,
-        products: listTemp?.filter((item) =>item._id.toString() !== action.payload),
-        loading: false,
+        productsPerCompany: {
+          ...state.productsPerCompany,
+          data: listTemp?.filter((item) =>item._id.toString() !== action.payload),
+          loading: false,
+        },
       };
     }
 

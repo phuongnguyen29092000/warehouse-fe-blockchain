@@ -24,7 +24,7 @@ function ListOwnerAdmin({keySearch = ''}) {
 
     useEffect(() => {
         document.title = 'Warehouse Protection | Quản lý công ty'
-        dispatch(setActiveUrl('list-user'))
+        dispatch(setActiveUrl('list-company'))
     },[])
     
     const handleClose = ()=>{

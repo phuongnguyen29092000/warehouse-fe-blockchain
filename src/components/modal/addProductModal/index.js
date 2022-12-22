@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import ProductForm from './ProductForm';
 import {useDispatch, useSelector} from 'react-redux'
 import { format } from 'date-fns';
-import { addProduct } from 'redux/reducers/product/action';
+import { addProduct, updateProduct } from 'redux/reducers/product/action';
 
 const AddProductModal = ({ open, handleClose, product, action }) => {
     const dispatch = useDispatch()
@@ -27,7 +27,8 @@ const AddProductModal = ({ open, handleClose, product, action }) => {
     }
 
     const handleUpdateProduct = (id,data)=> {
-        // dispatch(updateProduct(id, data, handleClose))
+        console.log('xxxxxxxxxxx');
+        dispatch(updateProduct(id, data, handleClose))
     }
     return (
         <div className='add-tour-modal'>

@@ -172,6 +172,14 @@ function ProductDetail() {
             navigate('/dang-nhap')
             return 
         }
+        if(detail?.user?._id === accountUser?._id) {
+            useNotification.Error({
+              title: "Chú ý!",
+              message:`Bạn không thể thực hiện mua sản phẩm của công ty bạn!`,
+              duration: 3000
+            })
+            return 
+          }
         const existProduct = cartData?.products?.filter((p)=> p?.product._id.toString()?.includes(detail._id.toString()))
         if(!isEmpty(existProduct)) {
             useNotification.Error({
@@ -204,6 +212,14 @@ function ProductDetail() {
             navigate('/dang-nhap')
             return 
         }
+        if(detail?.user?._id === accountUser?._id) {
+            useNotification.Error({
+              title: "Chú ý!",
+              message:`Bạn không thể thực hiện mua sản phẩm của công ty bạn!`,
+              duration: 3000
+            })
+            return 
+          }
         const existProduct = cartData?.products?.filter((p)=> p?.product._id.toString()?.includes(detail._id.toString()))
         if(isEmpty(existProduct)) {
             const data = {
@@ -316,7 +332,6 @@ function ProductDetail() {
                                     <div style={{display: 'flex', marginTop: 10}}>
                                         <Typography gutterBottom variant="button" component="div" align='left'>
                                             <Button variant="contained" color="warning" sx={{marginRight: 1, height: 50}}
-                                                // disabled={!getUser() || !data?.owner?.active || moment(data.timeStart).subtract(5, 'days').toDate().getTime() <  Date.now()}
                                                 onClick={() => hanldeAddToCart(data)}
                                                 >
                                                 <div style={{display: 'flex', alignItems: 'center', paddingRight: 10, marginRight: 10, borderRight: '2px solid #fff'}}>
@@ -327,7 +342,6 @@ function ProductDetail() {
                                         </Typography>
                                         <Typography gutterBottom variant="button" component="div" align='left'>
                                             <Button variant="outlined" color="warning"
-                                                // disabled={!getUser() || !data?.owner?.active || moment(data.timeStart).subtract(5, 'days').toDate().getTime() <  Date.now()}
                                                 onClick={() => handlePayment(data)} sx={{height: 50}}>
                                                 <div style={{display: 'flex', alignItems: 'center', paddingRight: 10, marginRight: 10, borderRight: '2px solid orange'}}>
                                                     <PaymentIcon />

@@ -79,12 +79,11 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
 
     console.log({detailOrder});
 
-    const createProductWhenPayment = async() => {
+    const returnProductToSeller = async() => {
         const data = {
             orderAddress: order.orderAddress,
-            buyerId: detailOrder?.details?.buyer?._id
         };
-        await ProductAPI.createProductsWhenPayment(data).then((res)=> {
+        await ProductAPI.returnProductToSeller(data).then((res)=> {
             console.log(res);
         }).catch((e)=> {
             console.log(e);
@@ -154,13 +153,21 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận hủy đơn xuất kho')
         const contract = await getContractOrder()
-        await confirmCancelOrder(contract, order?.seller).then((res)=> {
+        await confirmCancelOrder(contract, order?.seller).then(async(res)=> {
             console.log({res});
-            useNotification.Success({
-                title: "Thành công",
-                message: "Xác nhận hủy đơn xuất kho thành công!",
-                duration: 3000,
-              });
+            const data = {
+                orderAddress: order.orderAddress,
+            };
+            await ProductAPI.returnProductToSeller(data).then((res)=> {
+                console.log(res);
+                useNotification.Success({
+                    title: "Thành công",
+                    message: "Xác nhận hủy đơn xuất kho thành công!",
+                    duration: 3000,
+                });
+            }).catch((e)=> {
+                console.log(e);
+            })
             setStatusKey(2)
             setLoadingEvent(false)
         }).catch(()=> {
@@ -202,13 +209,22 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận đã nhận được đơn hàng hoàn trả.')
         const contract = await getContractOrder()
-        await confirmReturnedOrder(contract, order?.seller).then((res)=> {
+        await confirmReturnedOrder(contract, order?.seller).then(async(res)=> {
             console.log({res});
-            useNotification.Success({
-                title: "Thành công",
-                message: "Xác nhận đã nhận được hàng hoàn trả thành công!",
-                duration: 3000,
-              });
+            const data = {
+                orderAddress: order.orderAddress,
+            };
+            await ProductAPI.returnProductToSeller(data).then((res)=> {
+                console.log(res);
+                useNotification.Success({
+                    title: "Thành công",
+                    message: "Xác nhận đã nhận được hàng hoàn trả thành công!",
+                    duration: 3000,
+                  });
+            }).catch((e)=> {
+                console.log(e);
+            })
+           
             setStatusKey(5)
             setLoadingEvent(false)
         }).catch(()=> {
@@ -227,13 +243,22 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận hủy và rút tiền vì công ty xuất kho quá hạn xác nhận đơn hàng.')
         const contract = await getContractOrder()
-        await handleWithDrawForBuyerWhenSellerNotConfirm(contract, order?.buyer).then((res)=> {
+        await handleWithDrawForBuyerWhenSellerNotConfirm(contract, order?.buyer).then(async(res)=> {
             console.log({res});
-            useNotification.Success({
-                title: "Thành công",
-                message: "Xác nhận hủy và rút tiền vì công ty xuất kho quá hạn xác nhận đơn hàng thành công!",
-                duration: 3000,
-              });
+            const data = {
+                orderAddress: order.orderAddress,
+            };
+            await ProductAPI.returnProductToSeller(data).then((res)=> {
+                console.log(res);
+                useNotification.Success({
+                    title: "Thành công",
+                    message: "Xác nhận hủy và rút tiền vì công ty xuất kho quá hạn xác nhận đơn hàng thành công!",
+                    duration: 3000,
+                  });
+            }).catch((e)=> {
+                console.log(e);
+            })
+            
             setStatusKey(2)
             setLoadingEvent(false)
         }).catch((e)=> {
@@ -285,13 +310,22 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận rút tiền khi thời gian hoàn trả hàng hết hạn.')
         const contract = await getContractOrder()
-        await handleWithDrawForBuyerWhenReturnExpired(contract, order?.buyer).then((res)=> {
+        await handleWithDrawForBuyerWhenReturnExpired(contract, order?.buyer).then(async(res)=> {
             console.log({res});
-            useNotification.Success({
-                title: "Thành công",
-                message: "Xác nhận rút tiền khi thời gian hoàn trả hàng hết hạn thành công!",
-                duration: 3000,
-              });
+            const data = {
+                orderAddress: order.orderAddress,
+            };
+            await ProductAPI.returnProductToSeller(data).then((res)=> {
+                console.log(res);
+                useNotification.Success({
+                    title: "Thành công",
+                    message: "Xác nhận rút tiền khi thời gian hoàn trả hàng hết hạn thành công!",
+                    duration: 3000,
+                  });
+            }).catch((e)=> {
+                console.log(e);
+            })
+           
             setStatusKey(5)
             setLoadingEvent(false)
         }).catch(()=> {

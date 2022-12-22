@@ -6,6 +6,12 @@ const addOrUpdateCart = (id,data) => {
     return axiosClient.post(url, data, {headers: getHeaderWithToken()})
 }  
 
+const updateCountItemCart = (id,data) => {
+    console.log({data});
+    const url = `/cart/change-count/${id}`;
+    return axiosClient.put(url, data, {headers: getHeaderWithToken()})
+}  
+
 const getCartByUser = (id) => {
 	const url = `/cart/${id}`
 	return axiosClient.get(url, {headers: getHeaderWithToken()})
@@ -25,5 +31,6 @@ export default {
     addOrUpdateCart, 
     getCartByUser,
     deleteItemCart,
-    deleteMultipleItemCart
+    deleteMultipleItemCart,
+    updateCountItemCart
 }

@@ -9,6 +9,7 @@
     .block-left {
         width: 300px;
         display: flex;
+        margin-bottom: 90px;
         flex-direction: column;
         height: auto;
         margin-right: 20px;
@@ -29,6 +30,7 @@
     .block-right {
         display: flex;
         margin-top: 20px;
+        margin-bottom: 90px;
         flex-direction: column;
         width: calc(100% - 300px);
         height: auto;

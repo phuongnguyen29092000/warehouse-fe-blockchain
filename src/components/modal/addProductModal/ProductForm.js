@@ -25,8 +25,8 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
         formState: { errors },
     } = useForm();
     const formRef = useRef(null)
-    const [start, setStart] = useState(product ? product.dateOfInventory : new Date());
-    const [end, setEnd] = useState(product ? product.warrantyPeriod : new Date());
+    const [start, setStart] = useState(product ? new Date(product.dateOfManufacture) : new Date());
+    const [end, setEnd] = useState(product ? new Date(product.warrantyPeriod) : new Date());
     const [imagePreview, setImagePreview] = useState();
     const {accountUser} = useSelector((store) => store.user) 
     const [listSubCat, setListSubCat] = useState([])
@@ -77,13 +77,14 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
                 formData.append('imageUrl',imagePreview)                
             }
             else if(key == 'dateOfInventory'){
-                formData.append('dateOfInventory', format(start, 'yyyy/MM/dd'))
+                formData.append('dateOfManufacture', format(start, 'yyyy/MM/dd'))
             }
             else if(key == 'warrantyPeriod'){
                 formData.append('warrantyPeriod', format(end, 'yyyy/MM/dd'))
             }
             else formData.append(key, data[key])
         }
+        console.log(121345643);
 
         formData.append("user", accountUser._id)
         formData.append("manufacturer", accountUser._id)
