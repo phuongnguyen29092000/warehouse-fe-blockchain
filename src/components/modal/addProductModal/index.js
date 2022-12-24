@@ -27,7 +27,6 @@ const AddProductModal = ({ open, handleClose, product, action }) => {
     }
 
     const handleUpdateProduct = (id,data)=> {
-        console.log('xxxxxxxxxxx');
         dispatch(updateProduct(id, data, handleClose))
     }
     return (

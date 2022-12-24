@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getAllCategory } from "redux/reducers/category/action";
+import { deleteCategory, getAllCategory } from "redux/reducers/category/action";
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import PaginationCustom from "components/common/PaginationCustom";
@@ -31,6 +31,15 @@ const ListCategoryAdmin = () => {
         if(categories?.length) return 
         dispatch(getAllCategory())
     }, [])
+
+    const handleDelete = () => {
+        dispatch(deleteCategory(categorytDelete.id,(res)=>{
+            setOpenConfirmModal(false)
+            if(res === 204) {
+                //
+            }
+        }))
+    }
 
     const handleClose = () => {
         setOpen(!open);
@@ -72,8 +81,8 @@ const ListCategoryAdmin = () => {
                                                 <EditIcon fontSize='15px' />
                                             </div>
                                             <div className='btn-action btn-delete' onClick={()=>{
-                                                        // setProductDelete({id: _product._id, productName: _product.productName})
-                                                        // setOpenConfirmModal(true)
+                                                setCategorytDelete({id: _category.parent._id, cateName: _category.parent.name, existChild: !!_category?.childrens?.length})
+                                                setOpenConfirmModal(true)
                                             }}>
                                                 <DeleteOutlineIcon fontSize='15px' />
                                             </div>
@@ -84,10 +93,16 @@ const ListCategoryAdmin = () => {
                         }
                     </tbody>
                 </table> 
-                   
             </div>
             <AddCategoryModal open={open} handleClose={handleClose} action="THÊM DANH MỤC MỚI"/>
             <AddCategoryModal open={openUpdate} handleClose={handleCloseUpdate} category={categorytUpdate} action="CẬP NHẬT DANH MỤC"/>
+            <ConfirmModal 
+                handleAction={handleDelete} 
+                content={`${categorytDelete?.existChild ? 'Tất cả danh mục con sẽ bị xóa .' : ''}Bạn có chắc chắn muốn xóa danh mục ${categorytDelete.cateName}`} 
+                setOpenConfirmModal = {setOpenConfirmModal}
+                title= "Xác nhận"
+                openConfirmModal={openConfirmModal}
+            />
         </div>
     );
 }

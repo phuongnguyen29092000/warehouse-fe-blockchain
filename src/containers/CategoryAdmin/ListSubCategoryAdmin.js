@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getAllCategory } from "redux/reducers/category/action";
+import { deleteSubCategory, getAllCategory } from "redux/reducers/category/action";
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import PaginationCustom from "components/common/PaginationCustom";
@@ -23,6 +23,7 @@ const ListSubCategoryAdmin = () => {
     const [openUpdate, setOpenUpdate] = useState(false) 
     const [categorytDelete, setCategorytDelete] = useState({})
     const [categorytUpdate, setCategorytUpdate] = useState({})
+    const [openConfirmModal, setOpenConfirmModal] = useState(false)
     const [data, setData] = useState([])
 
     useEffect(()=> {
@@ -42,7 +43,15 @@ const ListSubCategoryAdmin = () => {
         }))
     }, [])
 
-    console.log({data});
+    const handleDelete = () => {
+        dispatch(deleteSubCategory(categorytDelete.id,(res)=>{
+            setOpenConfirmModal(false)
+            if(res === 204) {
+                setData((prev)=> prev?.filter((c) => c?._id !==categorytDelete.id))
+            }
+        }))
+    }
+
     const handleClose = () => {
         setOpen(!open);
     }
@@ -83,8 +92,8 @@ const ListSubCategoryAdmin = () => {
                                                 <EditIcon fontSize='15px' />
                                             </div>
                                             <div className='btn-action btn-delete' onClick={()=>{
-                                                        // setProductDelete({id: _product._id, productName: _product.productName})
-                                                        // setOpenConfirmModal(true)
+                                                setCategorytDelete({id: _category._id, cateName: _category.name})
+                                                setOpenConfirmModal(true)
                                             }}>
                                                 <DeleteOutlineIcon fontSize='15px' />
                                             </div>
@@ -99,6 +108,13 @@ const ListSubCategoryAdmin = () => {
             </div>
             <AddCategoryModal open={open} handleClose={handleClose} isSub={true} action="THÊM DANH MỤC MỚI"/>
             <AddCategoryModal open={openUpdate} handleClose={handleCloseUpdate} category={categorytUpdate} isSub={true} action="CẬP NHẬT DANH MỤC"/>
+            <ConfirmModal 
+                handleAction={handleDelete} 
+                content={`Bạn muốn xóa danh mục con ${categorytDelete.cateName}`} 
+                setOpenConfirmModal = {setOpenConfirmModal}
+                title= "Xác nhận"
+                openConfirmModal={openConfirmModal}
+            />
         </div>
     );
 }

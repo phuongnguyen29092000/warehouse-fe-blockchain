@@ -30,6 +30,12 @@ import { deleteItemCart, deleteMultipleItemCartById } from "redux/reducers/cart/
 import { getUser } from "hooks/localAuth";
 import CartAPI from 'apis/CartAPI'
 import { debounce } from "lodash";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import RegardPrice from "LogicResolve/RegardPrice";
 
 const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEvent, setDataOrders}) => {
 	const navigate = useNavigate()
@@ -50,6 +56,8 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 
 	const [data, setData] = useState([])
 	const [deliveryPay, setDeliveryFee] = useState(0.005)
+	const [openDialog, setOpenDialog] = useState(false)
+	const [balance, setBalance] = useState(0)
 
 	const [stateOrder, setStateOrder] = useState({
 		ward: '',
@@ -104,15 +112,14 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 			await getWard(accountUser?.address.district).then((res)=> {
 				const dataWards = res.data.data.map((ward)=> ({...ward, label: ward.name, value: ward.name}))
 				const selectedWard = dataWards.find((item)=> item?.id === accountUser?.address.ward)
-				console.log({selectedWard});
 				setStateAddress((prev)=> ({
 					...prev,
 					wardOptions: dataWards,
 					selectedWard: selectedWard
 				}));
+				setStateOrder((prev)=> ({...prev, detailAddress: accountUser?.address?.detail, ward: selectedWard?.name, phoneNumber: accountUser?.phoneNumber}) )
 				})
-
-			setStateOrder((prev)=> ({...prev, detailAddress: accountUser?.address?.detail}) )
+				
 		}
 		fetchAddress()
 	}, [])
@@ -121,7 +128,6 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 		if(Object.keys(accountUser)?.length) return
 		setLoading(true)
 		const fetchProvinces = async() => {
-			
 			await getProvince().then(res=> {
 				const data = res.data.data.map((pro)=> ({...pro, label: pro.name, value: pro.name}))
 				setStateAddress((prev)=> ({
@@ -217,119 +223,97 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 	}
 
 	const handlePayment = async() => {
-		window.ethereum.request({method: 'eth_getBalance', params: [accountUser?.walletAddress, 'latest']})
-			.then((balance)=> {
-				const currBalance = parseFloat(Number(ethers.utils.formatEther(balance)))
-				if(currBalance < (parseFloat(parseFloat(totalPrice) + parseFloat(deliveryPay)))) {
-					useNotification.Success({
-						title: "Thất bại!",
-						message:"Không đủ số dư. Vui lòng nạp tiền!",
-						duration: 4000
-					})
-					return
-				}
-			})
-		setLoadingEvent(true)
-		setTitleLoading('Đang thực hiện quá trình tạo hóa đơn. Vui lòng xác nhận!')
-		const details = data.map((product)=> {
-			const {discount, price} = product?.product
-			return {
-				product: product.product._id,
-				priceDis: parseFloat(price*(1-discount)).toFixed(4),
-				quantity: product.quantity
-			}
-		})
-		const accountSeller = data?.[0]?.userInfo?.walletAddress
-		const contract = await getContractWarehouse();
-		
-		await addOrderToWarehouse(
-			contract,
-			accountUser?.walletAddress,
-			accountSeller,
-			deliveryPay*1000000000000000000,
-			details?.length,
-			moment(Date.now()).add(10, 'minutes').toDate().getTime(),
-		).then(async(res)=> {
-			console.log({res})
-			setTitleLoading('Đang thực hiện quá trình chuyển tiền vào hóa đơn. Vui lòng xác nhận!')
-			const getContractOrder = async () => {;
-				return await getContract(library, res.events.createOrder.returnValues[0], "Order");
-			}
-			const contractOrder = await getContractOrder()
-			await confirmPurchase(
-				contractOrder,
-				account,
-				library.utils.toWei(`${parseFloat(parseFloat(totalPrice) + parseFloat(deliveryPay)).toFixed(4)}`, 'ether')
-				).then((res1)=> {
-					console.log(res1);
-					const dataDB = {
-						walletAddress: res1.events.confirmPurchaseEvent.returnValues[1],
-						note: stateOrder.note,
-						phoneNumber: stateOrder.phoneNumber,
-						address: `${stateOrder.detailAddress}, ${stateOrder.ward}, ${stateAddress.selectedDistrict?.label}, ${stateAddress.selectedCity?.label}`,
-						details: details
-					}
-					dispatch(createOrder(dataDB, (res)=> {
-						if(res) {
-							const detailIds = res.order.details?.map((d)=> d.product)
-							dispatch(deleteMultipleItemCartById(accountUser?._id, {ids: detailIds}))
-							setData([])
-							setLoadingEvent(false)
-							useNotification.Success({
-								title: "Thành công",
-								message:"Bạn đã đặt hàng thành công!",
-								duration: 4000
-							})
-							navigate('/owner/order-history')
-						}
-					}))
-				}).catch((e)=> {
-					console.log({e});
-					useNotification.Success({
-						title: "Thất bại",
-						message:"Xác nhận gửi tiền vào hóa đơn thất bại!",
-						duration: 4000
-					})
-					setLoadingEvent(false)
-				})
-		}).catch((e)=>{
-			console.log({e});
-			useNotification.Success({
-				title: "Thất bại",
-				message:"Tạo hóa đơn thất bại!",
+		if(!stateOrder.phoneNumber) {
+			useNotification.Error({
+				title: "Thất bại!",
+				message:"Vui lòng nhập đầy đủ thông tin!",
 				duration: 4000
 			})
-			setLoadingEvent(false)
-		})
-
-
-		// confirmPurchase(
-		// 	contract,
-		// 	'0x87E459a7f037681f8bAd99522D3Cae1a734Ef9c6',
-		// 	library.utils.toWei('0.002', 'ether')
-		// ).then((res)=> {
-		// 	console.log(res);
-		// })
-		// confirmPaymentToSeller(
-		// 	contract,
-		// 	'0x87E459a7f037681f8bAd99522D3Cae1a734Ef9c6'
-		// ).then((res)=> {
-		// 	console.log(res);
-		// })
-
-		// const transaction = await getAllTransactionOrder(contract)
-		// console.log(transaction);
-
-		// const formatted = moment(1669653372*1000).format("DD-MM-YYYY h:mm:ss");
-		// const formatted1 = moment(1669654752*1000).format("DD-MM-YYYY h:mm:ss");
-		
-		// console.log(formatted, formatted1);
-
-		// const listOrder = await getAllOrder(contract)
-		// console.log({listOrder});
-
+			return 
+		}
+		window.ethereum.request({method: 'eth_getBalance', params: [accountUser?.walletAddress, 'latest']})
+			.then(async(balance)=> {
+				const currBalance = parseFloat(Number(ethers.utils.formatEther(balance)))
+				if(currBalance < (parseFloat(parseFloat(totalPrice) + parseFloat(deliveryPay)))) {
+					setBalance(currBalance)
+					setOpenDialog(true)
+					return
+				} else {
+					setLoadingEvent(true)
+					setTitleLoading('Đang thực hiện quá trình tạo hóa đơn. Vui lòng xác nhận!')
+					const details = data.map((product)=> {
+						const {discount, price} = product?.product
+						return {
+							product: product.product._id,
+							priceDis: parseFloat(price*(1-discount)).toFixed(4),
+							quantity: product.quantity
+						}
+					})
+					const accountSeller = data?.[0]?.userInfo?.walletAddress
+					const contract = await getContractWarehouse();
+					
+					await addOrderToWarehouse(
+						contract,
+						accountUser?.walletAddress,
+						accountSeller,
+						deliveryPay*1000000000000000000,
+						details?.length,
+						moment(Date.now()).add(10, 'minutes').toDate().getTime(),
+					).then(async(res)=> {
+						console.log({res})
+						setTitleLoading('Đang thực hiện quá trình chuyển tiền vào hóa đơn. Vui lòng xác nhận!')
+						const getContractOrder = async () => {;
+							return await getContract(library, res.events.createOrder.returnValues[0], "Order");
+						}
+						const contractOrder = await getContractOrder()
+						await confirmPurchase(
+							contractOrder,
+							account,
+							library.utils.toWei(`${parseFloat(parseFloat(totalPrice) + parseFloat(deliveryPay)).toFixed(4)}`, 'ether')
+							).then((res1)=> {
+								console.log(res1);
+								const dataDB = {
+									walletAddress: res1.events.confirmPurchaseEvent.returnValues[1],
+									note: stateOrder.note,
+									phoneNumber: stateOrder.phoneNumber,
+									address: `${stateOrder.detailAddress}, ${stateOrder.ward}, ${stateAddress.selectedDistrict?.label}, ${stateAddress.selectedCity?.label}`,
+									details: details
+								}
+								dispatch(createOrder(dataDB, (res)=> {
+									if(res) {
+										const detailIds = res.order.details?.map((d)=> d.product)
+										dispatch(deleteMultipleItemCartById(accountUser?._id, {ids: detailIds}))
+										setData([])
+										setLoadingEvent(false)
+										useNotification.Success({
+											title: "Thành công",
+											message:"Bạn đã đặt hàng thành công!",
+											duration: 4000
+										})
+										navigate('/owner/order-history')
+									}
+								}))
+							}).catch((e)=> {
+								console.log({e});
+								useNotification.Success({
+									title: "Thất bại",
+									message:"Xác nhận gửi tiền vào hóa đơn thất bại!",
+									duration: 4000
+								})
+								setLoadingEvent(false)
+							})
+					}).catch((e)=>{
+						console.log({e});
+						useNotification.Error({
+							title: "Thất bại",
+							message:"Tạo hóa đơn thất bại!",
+							duration: 4000
+						})
+						setLoadingEvent(false)
+					})
+				}
+			})
 	}
-	console.log({data});
 
 	if(isEmpty(data)) return null
 
@@ -711,6 +695,26 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 					</Grid>
 				</Grid>
 			</Grid>
+			<Dialog
+				open={openDialog}
+				onClose={()=> setOpenDialog(false)}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+			>
+				<DialogTitle id="alert-dialog-title" style={{color: 'orange', fontSize: 25, fontWeight: 600, textAlign: 'center'}}>
+				{"Chú ý"}
+				</DialogTitle>
+				<DialogContent>
+				<DialogContentText id="alert-dialog-description" style={{fontSize: 18}}>
+					Tài khoản hiện tại của bạn không đủ số dư. Vui lòng nạp tiền!!
+					<div>Số dư hiện tại: {parseFloat(balance).toFixed(4)} ETH</div>
+					
+				</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+				<Button onClick={()=> setOpenDialog(false)}>Đóng</Button>
+				</DialogActions>
+			</Dialog>
 		</Container>
 	)
 }

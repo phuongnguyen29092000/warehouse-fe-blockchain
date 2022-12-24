@@ -22,9 +22,23 @@ const logout = () => {
     return axiosClient.post(url, refreshTokenValue(), {headers: getHeaderWithToken()})
 }
 
+const forgotPassword = (data) => {
+    //body { email}
+    let url = '/auth/forgot-password'
+    return axiosClient.post(url, data)
+}
+
+const resetPassword = (data) => {
+    //body { token, newPass}
+    let url = '/auth/reset-password'
+    return axiosClient.post(url, data)
+}
+
 export default {
     login,
     refreshToken,
     logout,
-    changePass
+    changePass,
+    forgotPassword,
+    resetPassword
 }

@@ -11,7 +11,13 @@ const getFeedbackByCompany = (id) => {
 	return axiosClient.get(url)
 }
 
+const getFeedbackById = (id) => {
+	const url = `/feedback/${id}`
+	return axiosClient.get(url, {headers: getHeaderWithToken()})
+}
+
 export default {
     addFeedback, 
-    getFeedbackByCompany
+    getFeedbackByCompany,
+    getFeedbackById
 }

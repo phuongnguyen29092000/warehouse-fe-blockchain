@@ -43,7 +43,6 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
 
     useEffect(()=> {
         if(!isExpand) return 
-        console.log({order});
         const getDetailFromDB = async() => {
             setLoading(true)
             const contractOrder = await getContractOrder() 
@@ -91,11 +90,15 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     }
 
     const handleConfirmOrder = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận đơn xuất kho')
         const contract = await getContractOrder()
-        await confirmDeliveryOrder(contract, order?.seller, moment(Date.now()).add(10, 'minutes').toDate().getTime()).then((res)=> {
+        await confirmDeliveryOrder(contract, order?.seller, moment(Date.now()).add(5, 'minutes').toDate().getTime()).then((res)=> {
             console.log({res});
             useNotification.Success({
                 title: "Thành công",
@@ -104,6 +107,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
               });
             setStatusKey(1)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch(()=> {
             useNotification.Error({
                 title: "Thất bại",
@@ -115,6 +119,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     }
 
     const handlePaymentToSeller = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang gửi tiền cho công ty xuất kho.')
@@ -137,6 +145,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                 })
             setStatusKey(3)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch((e)=> {
             console.log(e);
             useNotification.Error({
@@ -149,6 +158,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     }
 
     const handleCancelOrder = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận hủy đơn xuất kho')
@@ -170,6 +183,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             })
             setStatusKey(2)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch(()=> {
             useNotification.Error({
                 title: "Thất bại",
@@ -181,6 +195,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     } 
 
     const handleReturnOrder = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận hoàn trả đơn hàng nhập kho.')
@@ -194,6 +212,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
               });
             setStatusKey(4)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch(()=> {
             useNotification.Error({
                 title: "Thất bại",
@@ -205,6 +224,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     } 
 
     const handleConfirmReceiveReturnOrder = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận đã nhận được đơn hàng hoàn trả.')
@@ -223,10 +246,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                   });
             }).catch((e)=> {
                 console.log(e);
-            })
-           
+            })    
             setStatusKey(5)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch(()=> {
             useNotification.Error({
                 title: "Thất bại",
@@ -238,6 +261,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     } 
 
     const withDrawForBuyerWhenSellerNotConfirm = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         console.log('wating');
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
@@ -258,9 +285,9 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             }).catch((e)=> {
                 console.log(e);
             })
-            
             setStatusKey(2)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch((e)=> {
             console.log({e});
             useNotification.Error({
@@ -273,6 +300,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     }
 
     const withDrawForSellerWhenDeliveryExpired = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận rút tiền khi thời gian vận chuyển hàng hết hạn.')
@@ -295,6 +326,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                 })
             setStatusKey(3)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch(()=> {
             useNotification.Error({
                 title: "Thất bại",
@@ -306,6 +338,10 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     }
 
     const withDrawForBuyerWhenReturnExpired = async() => {
+        if(!isExpand) {
+            await checkExpand()
+            return
+        }
         setLoadingEvent(true)
         setActiveOrder(order?.orderAddress)
         setTitle('Đang xác nhận rút tiền khi thời gian hoàn trả hàng hết hạn.')
@@ -325,9 +361,9 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             }).catch((e)=> {
                 console.log(e);
             })
-           
             setStatusKey(5)
             setLoadingEvent(false)
+            setFetchTransaction(true)
         }).catch(()=> {
             useNotification.Error({
                 title: "Thất bại",
@@ -461,8 +497,8 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     const renderTextExpired = () => {
         const status = getOrderStatus(statusKey)
         if(status === 'PENDING') {
-            if(isBuyer) return 'Đơn hàng đã quá hạn xác nhận. Bạn có thể xác nhận hủy đơn và rút tiền từ hóa đơn!'
-            if(!isBuyer) return 'Đơn hàng đã quá hạn xác nhận sau 5 ngày lập đơn'
+            if(isBuyer) return 'Đơn hàng đã quá hạn xác nhận hoặc hủy đơn. Bạn có thể xác nhận hủy đơn và rút tiền từ hóa đơn!'
+            if(!isBuyer) return 'Đơn hàng đã quá hạn xác nhận hoặc hủy đơn sau 5 ngày lập đơn'
         }
         if(status === 'CONFIRMED') {
             if(!isBuyer) return 'Đơn hàng đã quá hạn vận chuyển. Bạn có thể xác nhận thanh toán và rút tiền đơn hàng từ hóa đơn!'
@@ -492,6 +528,14 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
     }
 
     const isRenderWarning = getOrderStatus(statusKey) === 'PENDING' || getOrderStatus(statusKey) === 'CONFIRMED' || getOrderStatus(statusKey) == 'RETURN'
+
+    const checkExpand = async () => {
+        return useNotification.Error({
+            title: "Cảnh báo",
+            message: "Vui lòng xem chi tiết để thực hiện xác nhận!",
+            duration: 3000,
+          });
+    }
 
     return (
         <div className="order-detail">
@@ -606,18 +650,24 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                                     isExpired={isExpired} 
                                     detailOrder={detailOrder}
                                     isBuyer={isBuyer}
+                                    fetchTransaction={fetchTransaction}
+                                    setDetailOrder={setDetailOrder}
                                 />
                             </Grid>
                             <Grid item xs={6} style={{marginTop: '-30px'}}>
                                 <div className='info-user'>
                                     <h3 style={{marginLeft: 10, marginBottom: 5}} className='text-monospace'>CHI TIẾT</h3>
                                     <div className='info-address'>
+                                        <label>Công ty xuất kho: </label>
+                                        <span>{detailOrder?.details?.[0].seller?.companyName}</span>
+                                    </div>
+                                    <div className='info-address'>
                                         <label>Địa chỉ giao hàng: </label>
-                                    <span>{detailOrder?.address}</span>
+                                        <span>{detailOrder?.address}</span>
                                     </div>
                                     <div className='info-address'>
                                         <label>Điện thoại liên hệ: </label>
-                                    <span>{detailOrder?.phoneNumber || '0395260327'}</span>
+                                        <span>{detailOrder?.phoneNumber || '0395260327'}</span>
                                     </div>
                                     <Grid item xs={11}>
                                         <TextField
@@ -629,8 +679,8 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                                             label="Ghi chú đơn hàng"
                                             name="note"
                                             autoComplete="note"
-                                            rows={3}
-                                            maxRows={3}
+                                            rows={2}
+                                            maxRows={2}
                                             style={{background: '#fff', marginLeft: 20, marginBottom: 10}}
                                             value={detailOrder?.note || 'Không có ghi chú'}
                                         />

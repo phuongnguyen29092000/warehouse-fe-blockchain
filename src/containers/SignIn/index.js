@@ -19,6 +19,12 @@ import {ethers} from 'ethers';
 import useNotification from "hooks/notification";
 import { useWeb3React } from "@web3-react/core";
 import { injected } from "../../components/Wallet";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import AuthAPI from "apis/AuthAPI";
 
 function Copyright(props) {
   return (
@@ -54,6 +60,8 @@ export default function SignIn() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 	const {activate, error, active } = useWeb3React();
+  const [openModalResetPass, setOpenModalResetPass] = React.useState(false)
+  const [emailReset, setEmailReset] = React.useState('')
   
   React.useEffect(()=> {
     document.title = 'Warehouse Protection | Đăng nhập'
@@ -70,8 +78,6 @@ export default function SignIn() {
             console.log(ethers.utils.formatEther(balance));
         })
   }
-
-  // window?.ethereum?.on('accountsChanged', accountChangedHandler)
   
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -92,22 +98,29 @@ export default function SignIn() {
         } catch (e) {
           console.log(e);
         }
-        
-        // window.ethereum.request({method: 'eth_requestAccounts'})
-        //   .then(res=> {
-        //     accountChangedHandler(res[0])
-        //     useNotification.Success({
-        //       title: "Ví Metamask",
-        //       message:"Kết nối thành công!",
-        //       duration: 3
-        //     })
-        //     setTimeout(()=> {
-        //       navigate('/')
-        //     }, 3000)
-        // })   
       }
     }))
   };
+
+  const handleForgotPass = async() => {
+    await AuthAPI.forgotPassword({email: emailReset}).then((res)=> {
+      if(res.status === 200) {
+        setOpenModalResetPass(false)
+        setEmailReset('')
+        useNotification.Success({
+          title: "Thành công",
+          message:"Vui lòng kiểm tra Email của bạn!",
+          duration: 5000
+        })
+      }else {
+        useNotification.Error({
+          title: "Thất bại",
+          message:"Vui lòng thử lại!",
+          duration: 5000
+        })
+      }
+    })
+  }
 
   return (
     <Container component="main" maxWidth="xs" style={{marginBottom: 50}}>
@@ -164,10 +177,14 @@ export default function SignIn() {
               Đăng nhập
             </Button>
             <Grid container>
-              <Grid item xs>
-                <Link href="#" variant="body2">
+              <Grid item xs >
+                <div style={{color: '#1976d2', textDecoration: 'underline', fontWeight: 400, fontSize: 14, cursor: 'pointer'}}
+                  onClick={(e)=> {
+                    setOpenModalResetPass(true)
+                  }}
+                >
                   Quên mật khẩu?
-                </Link>
+                </div>
               </Grid>
               <Grid item>
                 <Link href="/dang-ki" variant="body2">
@@ -179,6 +196,29 @@ export default function SignIn() {
         </Box>
       </Grid>
       <Copyright sx={{ mt: 4, mb: 4 }} />
+      <Dialog open={openModalResetPass} onClose={()=>setOpenModalResetPass(false)}>
+        <DialogTitle>Reset Password</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Để reset mật khẩu, Vui lòng nhập email tại đây!. Chúng tôi sẽ gửi thông tin về email của bạn.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="name"
+            label="Địa chỉ email"
+            type="email"
+            fullWidth
+            variant="standard"
+            value={emailReset}
+            onChange={(e)=> setEmailReset(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={()=>setOpenModalResetPass(false)}>Hủy</Button>
+          <Button onClick={handleForgotPass}>Xác nhận</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

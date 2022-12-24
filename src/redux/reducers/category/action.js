@@ -185,46 +185,84 @@ const updateSubCategory = (id, data, callback = ()=>{}) => {
     }
 }
 
-// const deleteCategory = (id, callback = ()=>{}) => {
-//     return async(dispatch) => {
-//         await CheckExpiredToken()
-//         dispatch({type: types.DELETE_CATEGORY})
-//         API.deleteCategory(id)
-//         .then((result=>{
-//             if(result.status === 204){
-//                 dispatch({
-//                     type: types.DELETE_CATEGORY_SUCCESS,
-//                     payload: id
-//                 })
-//                 useNotification.Success({
-//                     title: "Thành công!",
-//                     message:"Bạn đã xóa danh mục thành công!"
-//                 })
-//                 callback()
-//             } 
-//             else{
-//                 dispatch({
-//                     type: types.DELETE_CATEGORY_FAIL
-//                 })
-//             }
-//         }))
-//         .catch((error)=>{
-//             dispatch({
-//                 type: types.DELETE_CATEGORY_FAIL,
-//                 payload: error
-//             })
-//             useNotification.Error({
-//                 title: "Lỗi",
-//                 message:`Lỗi server`
-//             })
-//         })
-//     }
-// }
+const deleteCategory = (id, callback = ()=>{}) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
+        dispatch({type: types.DELETE_CATEGORY})
+        API.deleteCategory(id)
+        .then((result=>{
+            if(result.status === 204){
+                dispatch({
+                    type: types.DELETE_CATEGORY_SUCCESS,
+                    payload: id
+                })
+                useNotification.Success({
+                    title: "Thành công!",
+                    message:"Bạn đã xóa danh mục thành công!"
+                })
+                callback()
+            } 
+            else{
+                dispatch({
+                    type: types.DELETE_CATEGORY_FAIL
+                })
+            }
+        }))
+        .catch((error)=>{
+            dispatch({
+                type: types.DELETE_CATEGORY_FAIL,
+                payload: error
+            })
+            useNotification.Error({
+                title: "Thất bại",
+                message:`Tồn tại sản phẩm thuộc danh mục này!`
+            })
+        })
+    }
+}
+
+const deleteSubCategory = (id, callback = ()=>{}) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
+        dispatch({type: types.DELETE_SUBCATEGORY})
+        API.deleteSubCategory(id)
+        .then((result=>{
+            if(result.status === 204){
+                dispatch({
+                    type: types.DELETE_SUBCATEGORY_SUCCESS,
+                    payload: id
+                })
+                useNotification.Success({
+                    title: "Thành công!",
+                    message:"Bạn đã xóa danh mục con thành công!"
+                })
+                callback(result.status)
+            } 
+            else{
+                dispatch({
+                    type: types.DELETE_SUBCATEGORY_FAIL
+                })
+            }
+        }))
+        .catch((error)=>{
+            dispatch({
+                type: types.DELETE_SUBCATEGORY_FAIL,
+                payload: error
+            })
+            useNotification.Error({
+                title: "Thất bại",
+                message:`Tồn tại sản phẩm thuộc danh mục này!`
+            })
+        })
+    }
+}
 
 export {
     getAllCategory,
     createCategory,
     updateCategory,
     updateSubCategory,
-    createSubCategory
+    createSubCategory,
+    deleteCategory,
+    deleteSubCategory
 }

@@ -36,7 +36,8 @@ const OrderHistory = () => {
 	}
 
     useEffect(()=> {
-		if(!Object.keys(accountUser)?.length) {
+        const userCur = getUser()
+		if(!Object.keys(userCur)?.length) {
 			useNotification.Error({
 			  title: "Chú ý!",
 			  message:`Vui lòng đăng nhập để xem lịch sử đơn hàng!`,

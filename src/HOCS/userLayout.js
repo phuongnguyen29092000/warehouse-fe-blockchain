@@ -1,6 +1,7 @@
 import Footer from 'containers/Footer';
 import React, { useState } from 'react';
 import Header from '../containers/Header'
+import { useSelector } from 'react-redux';
 
 const UserLayout = ({
     Component,

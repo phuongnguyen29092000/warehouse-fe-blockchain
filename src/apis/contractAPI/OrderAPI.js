@@ -5,7 +5,6 @@ import { BASE_PROVIDER_URL } from "../../config";
 var web3 = new Web3(BASE_PROVIDER_URL);
 
 const confirmPurchase = (contract, account, totalPrice) => {
-	console.log(totalPrice);
 	return contract.methods
 		.confirmPurchase()
 		.send(

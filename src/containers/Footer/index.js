@@ -8,8 +8,13 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import logo from "../../public/logoWarehouse.jpg";
+import { useSelector } from 'react-redux';
 
 function Footer(props) {
+
+    const {activePage} = useSelector(store => store.activeUrl)
+    if(activePage === 'cart-url') return null 
+
     return (
         <div className='footer-wrapper'
             style={{

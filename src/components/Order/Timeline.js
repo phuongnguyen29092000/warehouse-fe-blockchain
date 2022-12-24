@@ -8,26 +8,48 @@ import { useEffect, useState } from "react";
 import {getOrderStatus} from 'utils/logicUntils'
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import { filter } from "lodash";
+import { useDispatch } from "react-redux";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import FeedbackForm from "components/Form/FeedbackForm";
+import CloseIcon from '@mui/icons-material/Close';
+import { createFeedback } from "redux/reducers/feedback/action";
+import { getUser } from "hooks/localAuth";
 
-const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer}) => {
-    
+const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer, fetchTransaction, setDetailOrder}) => {
+    const dispatch = useDispatch()
     const [openFeedbackModal, setOpenFeedbackModal] = useState(false)
     const [data, setData] = useState([])
     const [showTransaction, setShowTransaction] = useState(false)
-
+    const accountUser = getUser()
+    let isExpiredStatus
+    console.log({order});
+    
     useEffect(()=> {
         if(!order) return 
         if(order?.state === '5') setData(transactions.filter((t, idx)=> {
             return idx !== 4
         }))
         else setData([...transactions])
-    }, [])
-
-    console.log(transactions);
+    }, [fetchTransaction])
 
     const renderContentTimeline = (status) => {
         const companyNameBuyer = detailOrder?.details?.[0]?.buyer?.companyName
         const companyNameSeller = detailOrder?.details?.[0]?.seller?.companyName
+        if(status === 'CANCEL' && (Number((order?.cancelTime))*1000 > Number(order?.dealine))) {
+            isExpiredStatus = true
+        }
+        else if(status === 'SUCCESS' && (Number((order?.paymentTime))*1000 > Number(order?.dealine))) {
+            isExpiredStatus = true
+        }
+        else if(status === 'RETURNED' && (Number((order?.returnedTime))*1000 > Number(order?.dealine))) {
+            isExpiredStatus = true
+        } 
+        else isExpiredStatus = false
+
         switch (status) {
             case 'PENDING':
                 return (
@@ -44,7 +66,7 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                 )
                 break;
             case 'CANCEL':
-                if(isExpired) {
+                if(isExpired && isExpiredStatus) {
                     return (
                         <span className="text-confirmby">
                             {`Xác nhận hủy và hoàn tiền bởi ${isBuyer ? 'bạn' : companyNameBuyer} (Hết hạn xác nhận hoặc hủy đơn)`}
@@ -59,7 +81,7 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                 )
                 break;
             case 'SUCCESS':
-                if(isExpired) {
+                if(isExpired && isExpiredStatus) {
                     return (
                         <span className="text-confirmby">
                             {`Xác nhận thanh toán và rút tiền bởi ${!isBuyer ? 'bạn' : companyNameSeller} (Hết hạn thanh toán hoặc hoàn trả hàng)`}
@@ -80,7 +102,7 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                     </span>
                 ) 
             case 'RETURNED':
-                if(isExpired) {
+                if(isExpired && isExpiredStatus) {
                     return (
                         <span className="text-confirmby">
                             {`Xác nhận hoàn trả thành công và hoàn tiền bởi ${isBuyer ? 'bạn' : companyNameBuyer} (Hết hạn xác nhận hoàn trả thành công)`}
@@ -98,6 +120,21 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                 return (<></>)
                 break;
         }
+    }
+
+    const handleSendFeedback = async(data) => {   
+        const body = {
+            ...data,
+            seller: detailOrder?.details?.[0]?.seller?._id,
+            buyer: accountUser?._id,
+            order: detailOrder?._id
+        }
+        dispatch(createFeedback(detailOrder?._id, body, (res)=> {
+            if(res) {
+                setOpenFeedbackModal(false)
+                setDetailOrder((prev)=> ({...prev, isRated: true}))
+            }
+        }))
     }
 
     return (
@@ -128,10 +165,18 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                                             }
                                         </div>
                                         {
-                                            getOrderStatus(Number(item?.state)) === 'SUCCESS' &&
-                                            <Button variant="outlined" color="primary" style={{width: 110, marginTop: 10}} size='small' onClick={()=> setOpenFeedbackModal(true)}>
-                                                ĐÁNH GIÁ
-                                            </Button>
+                                            getOrderStatus(Number(item?.state)) === 'SUCCESS' && isBuyer && !detailOrder?.isRated && (
+                                                <Button variant="outlined" color="primary" style={{width: 110, marginTop: 10}} size='small' onClick={()=> setOpenFeedbackModal(true)}>
+                                                    ĐÁNH GIÁ
+                                                </Button>
+                                            )
+                                        }
+                                        {
+                                            getOrderStatus(Number(item?.state)) === 'SUCCESS' && detailOrder?.isRated && (
+                                                <Button variant="outlined" color="primary" style={{width: 130, marginTop: 10}} size='small' onClick={()=> setOpenFeedbackModal(true)}>
+                                                    XEM ĐÁNH GIÁ
+                                                </Button> 
+                                            )
                                         }
                                     </div>
                                 </Box>
@@ -146,7 +191,7 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                         <th className='th-2'>Thời gian</th>
                         <th className='th-2'>Tài khoản thụ hưởng</th>
                         <th className='th-2'>Trạng thái</th>
-                        <th className='th-1'  style={{width: '50px', textAlign:'end'}}>Số ETH</th>
+                        <th className='th-1' style={{width: '50px', textAlign:'end'}}>Số ETH</th>
                     </thead>
                     <tbody>
                         {
@@ -172,6 +217,20 @@ const Timeline = ({order, library, transactions, isExpired, detailOrder, isBuyer
                     {!showTransaction ? 'Xem chi tiết giao dịch' : 'Xem Timeline'}
                 </Button>
             </div>
+
+            <Dialog
+                open={openFeedbackModal}
+                onClose={()=> setOpenFeedbackModal(false)}
+                aria-labelledby="responsive-dialog-title"
+                
+            >
+                <DialogContent style={{width: 500, marginBottom: 20, position: 'relative'}}>
+                    <FeedbackForm handleSendFeedback={handleSendFeedback} detailOrder={detailOrder}/>
+                    <div style={{position:'absolute', top: '10px', right: 10, cursor: 'pointer'}} onClick={()=> setOpenFeedbackModal(false)}>
+                        <CloseIcon fontSize="medium" htmlColor="#292929"/>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

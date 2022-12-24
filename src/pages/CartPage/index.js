@@ -17,6 +17,7 @@ import { getCartByUser } from "redux/reducers/cart/action";
 import { getUser } from "hooks/localAuth";
 import { handleGroupByUser } from "utils/logicUntils";
 import Footer from "containers/Footer";
+import { setActiveUrl } from "redux/reducers/activeUrl/action";
 
 const CartPage = () => {
     const navigate = useNavigate()
@@ -46,6 +47,10 @@ const CartPage = () => {
 
     useEffect(()=> {
         document.title = 'Giỏ hàng'  
+        dispatch(setActiveUrl('cart-url'))
+    },[])
+
+    useEffect(()=> {
         dispatch(getCartByUser(accountUser?._id, (res)=> {
             if(res) {
                 setDataOrders(handleGroupByUser(res?.products))

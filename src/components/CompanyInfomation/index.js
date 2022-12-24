@@ -15,7 +15,7 @@ const CompanyInfomation = ({info}) => {
                 <Grid item xs={6}>
                     <div className="block-left">
                         <div>
-                            <img src={ConvertToImageURL(info?.imageUrl) || Logo} alt=''/>
+                            <img src={ConvertToImageURL(info?.photoUrl) || Logo} alt=''/>
                         </div>
                         <div className="title-company">
                             <h4>
@@ -61,7 +61,7 @@ const CompanyInfomation = ({info}) => {
                         <Typography gutterBottom variant="body1" component="div" align='left' className="info-contact">
                             <LocalPhoneIcon fontSize="medium" htmlColor="#ee4d2d"/>
                             <span style={{color: 'rgba(0,0,0,.54)'}}>
-                                {info?.phoneNumber || '0395260327'}      
+                                {info?.phoneNumber || 'Chưa cập nhật'}      
                             </span>
                         </Typography>
                     </Grid>
@@ -69,7 +69,7 @@ const CompanyInfomation = ({info}) => {
                         <Typography gutterBottom variant="body1" component="div" align='left' className="info-contact">
                             <LocationOnIcon fontSize="medium" htmlColor="#ee4d2d"/>
                             <span style={{color: 'rgba(0,0,0,.54)'}}>
-                                {info?.address?.value || 'Quang Nam'}      
+                                {info?.address?.value || 'Chưa cập nhật'}      
                             </span>
                         </Typography>
                     </Grid>

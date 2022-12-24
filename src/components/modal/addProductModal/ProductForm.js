@@ -76,7 +76,7 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
             if (key == 'imageUrl') {
                 formData.append('imageUrl',imagePreview)                
             }
-            else if(key == 'dateOfInventory'){
+            else if(key == 'dateOfManufacture'){
                 formData.append('dateOfManufacture', format(start, 'yyyy/MM/dd'))
             }
             else if(key == 'warrantyPeriod'){
@@ -84,7 +84,6 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
             }
             else formData.append(key, data[key])
         }
-        console.log(121345643);
 
         formData.append("user", accountUser._id)
         formData.append("manufacturer", accountUser._id)
@@ -93,8 +92,6 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
         else handleAddProduct(formData);
         setSubmit(false)
     };
-
-    console.log(product);
 
     return (
         <div className='create-tour-form-wrapper'>

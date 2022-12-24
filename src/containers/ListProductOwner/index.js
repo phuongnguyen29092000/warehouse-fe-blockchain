@@ -34,7 +34,6 @@ const ListProductOwner = () => {
     const [productUpdate, setProductUpdate] = useState({})
     const [page, setPage] = useState(1)
     const [viewType, setViewType] = useState()
-    const [expandSearch, setExpandSearch] = useState(false)
 
     useEffect(()=> {
         document.title = 'Warehouse Protection | Sản phẩm'
