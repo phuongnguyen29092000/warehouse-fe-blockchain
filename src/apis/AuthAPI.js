@@ -23,14 +23,12 @@ const logout = () => {
 }
 
 const forgotPassword = (data) => {
-    //body { email}
     let url = '/auth/forgot-password'
     return axiosClient.post(url, data)
 }
 
-const resetPassword = (data) => {
-    //body { token, newPass}
-    let url = '/auth/reset-password'
+const resetPassword = (token, data) => {
+    let url = `/auth/reset-password?token=${token}`
     return axiosClient.post(url, data)
 }
 

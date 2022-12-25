@@ -26,6 +26,7 @@ const Header = () => {
   const navigate = useNavigate()
   const { accountUser } = useSelector((store) => store.user)
   const { cartData } = useSelector((store) => store.cart)
+  const {activePage} = useSelector(store => store.activeUrl)
 	const { active, deactive, account } = useWeb3React();
 
   const handleChange = (event) => {
@@ -39,6 +40,9 @@ const Header = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const style = {
+    borderBottom: '3px solid tomato'
+  }
 
   return (
     <AppBar
@@ -72,7 +76,7 @@ const Header = () => {
               marginLeft: 30,
             }}
           >
-            <Link style={{ textDecoration: "none", width: 90, position: 'relative'}} to={"/gio-hang"}>
+            <Link style={{ textDecoration: "none", width: 90, position: 'relative'}} to={"/gio-hang"} className={`${activePage === 'cart-url' ? 'active-page-user': ''}`}>
               <div style={{ width: "100%", height: 30 }}>
                 <ShoppingCartIcon fontSize="medium" color="action" />
               </div>
@@ -105,7 +109,7 @@ const Header = () => {
               <span style={{ fontSize: 12, color: "#292929" }}>Orders</span>
             </Link>
 
-            <Link style={{ textDecoration: "none", width: 90 }} to={"/contact"}>
+            <Link style={{ textDecoration: "none", width: 90 }} to={"/lien-he"} className={`${activePage === 'contact' ? 'active-page-user': ''}`}>
               <div style={{ width: "100%", height: 30 }}>
                 <ContactMailIcon fontSize="medium" color="action" />
               </div>

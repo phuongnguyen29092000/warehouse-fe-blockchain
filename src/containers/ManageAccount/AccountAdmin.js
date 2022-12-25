@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { setActiveUrl } from "redux/reducers/activeUrl/action"
-import {getDistrict, getProvince, getWard} from '../../apis/apiAddress'
 import Select from 'react-select'
 import AddIcon from '@mui/icons-material/Add';
 import ConvertToImageURL from "LogicResolve/ConvertToImageURL";

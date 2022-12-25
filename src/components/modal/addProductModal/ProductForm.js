@@ -52,6 +52,11 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
         })
     }, [product])
 
+    useEffect(()=> {
+        if(!product) return
+        setSelectedCate(product?.subCategory)
+    }, [])
+
     useEffect(() => {
         return () => {
             imagePreview && URL.revokeObjectURL(imagePreview.preview);
@@ -88,6 +93,9 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
         formData.append("user", accountUser._id)
         formData.append("manufacturer", accountUser._id)
         formData.append("subCategory", selectedCate)
+        for (var pair of formData.entries()) {
+            console.log(pair[0]+ ', ' + pair[1]); 
+        }
         if(product) handleUpdateProduct(product?._id.toString(), formData)
         else handleAddProduct(formData);
         setSubmit(false)

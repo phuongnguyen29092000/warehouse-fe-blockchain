@@ -3,7 +3,6 @@ import { Box, Button, ButtonGroup, Container, Divider, Drawer, Grid, Typography 
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import Slider from 'react-slick';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useParams } from 'react-router-dom';
@@ -13,15 +12,12 @@ import { styled } from "@mui/material/styles";
 import ConvertToImageURL from '../../LogicResolve/ConvertToImageURL'
 import { makeStyles } from '@mui/styles';
 import PriceDiscount from '../../LogicResolve/PriceDiscount';
-// import TabDetail from '../../components/TabDetail';
 import Spinner from 'components/Spinner';
 import { getUser } from 'hooks/localAuth';
-// import BookTourModal from 'components/modal/BookTourModal';
 import _, { isEmpty } from 'lodash';
 import moment from 'moment';
-// import { setActiveUrl } from 'redux/reducers/activeUrl/action';
 import { getProductById, getSimilarProduct } from 'redux/reducers/product/action';
-// import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Controller, useForm } from 'react-hook-form';
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PaymentIcon from '@mui/icons-material/Payment';
@@ -32,6 +28,7 @@ import { Link, useNavigate } from "react-router-dom";
 import TabDetail from 'components/TabDetail';
 import useNotification from 'hooks/notification';
 import { addOrUpdateCart } from 'redux/reducers/cart/action';
+import EmptyProductIcon from '../../public/empty-product.jpg'
 
 const useStyles = makeStyles({
     avatar: {
@@ -134,9 +131,10 @@ function ProductDetail() {
     }, [id])
     
     useEffect(()=> {
+        if(!productDetail?.data?._id) return
         if(productDetail.loading) return 
         dispatch(getSimilarProduct({...DEFAULT_PARAMS, subCategoryId: data.subCategory?._id}, (res)=> {
-            // setSimilarProducts(res?.filter((p)=> p._id !== data?._id).slice(0, 3))
+            //
         }))
     }, [data.subCategory])
 
@@ -269,19 +267,19 @@ function ProductDetail() {
     };
     
     return (
-        <div className='tour-detail-wrapper'>
+        <div className='product-detail-wrapper'>
             {loading ? <Spinner /> :
-                (data &&
+                (!!Object.keys(data)?.length ?
                     <Container maxWidth="lg">
                         <Box sx={{ paddingTop: '70px', paddingLeft: { md: '20px' }, paddingRight: { md: '20px' } }}>
                             <Grid container spacing={2}>
                                 <Grid className='tour-slide-wrapper' item md={6} xs={12} style={{ position: "relative", marginBottom: '70px'}}>
-                                    <div style={{width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                        {/* <TransformWrapper>
-                                            <TransformComponent> */}
+                                    <div style={{width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', maxHeight: 500}}>
+                                        <TransformWrapper>
+                                            <TransformComponent>
                                             <img src={ConvertToImageURL(data.imageUrl)} alt="test"/>
-                                            {/* </TransformComponent>
-                                        </TransformWrapper> */}
+                                            </TransformComponent>
+                                        </TransformWrapper>
                                         </div>
                                 </Grid>
                                 <Grid item md={6} xs={12} className='tour-info-wrapper'>
@@ -374,7 +372,7 @@ function ProductDetail() {
 
                                         <div style={{display: 'flex', width: '100%'}}>
                                             {
-                                                similarProduct.slice(0,3).map((product, index) => (
+                                                similarProduct.slice(0,3)?.filter((product)=> product?._id !== id).map((product, index) => (
                                                     <div key={index} style={{padding: '0 10px'}}>
                                                         <ProductCard
                                                             _id={product._id}
@@ -406,7 +404,11 @@ function ProductDetail() {
                         >
                             <CartDrawer onClose={() => setOpenDrawerCart(false)}/>
                         </Drawer>
-                    </Container>
+                    </Container> :
+                    <div className='empty-product'>
+                    <h2 className='title-not-found'>Không tìm thấy sản phẩm phù hợp</h2>
+                    <img src={EmptyProductIcon} alt=''/>
+                </div>
                 )
             }
         </div >

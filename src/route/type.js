@@ -6,6 +6,8 @@ export const ROUTE_LIST_PRODUCT = '/san-pham'
 export const ROUTE_PRODUCT_DETAIL = '/chi-tiet-san-pham/:id'
 export const ROUTE_CART = '/gio-hang'
 export const ROUTE_MY_WAREHOUSE = '/kho/:id'
+export const ROUTE_RESET_PASSWORD = '/dat-lai-mat-khau'
+export const ROUTE_CONTACT = '/lien-he'
 
 //owner route
 export const ROUTE_MANAGE_ACCOUNT_OWNER = '/owner/account'

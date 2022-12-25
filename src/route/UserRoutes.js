@@ -1,13 +1,15 @@
 import React, { useEffect } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import userLayout from '../HOCS/userLayout';
-import {ROUTE_HOME, ROUTE_LOGIN, ROUTE_SIGNUP ,ROUTE_PRODUCT_DETAIL, ROUTE_CART, ROUTE_MY_WAREHOUSE} from './type';
+import {ROUTE_HOME, ROUTE_LOGIN, ROUTE_SIGNUP ,ROUTE_PRODUCT_DETAIL, ROUTE_CART, ROUTE_MY_WAREHOUSE, ROUTE_RESET_PASSWORD, ROUTE_CONTACT} from './type';
 import { useDispatch } from 'react-redux';
 import SignIn from 'containers/SignIn';
 import HomePage from 'pages/HomePage';
+import ResetPassword from 'pages/ResetPassword';
 import SignUp from 'containers/SignUp';
 import ProductDetail from 'containers/ProductDetail';
 import CartPage from 'pages/CartPage';
+import Contact from 'pages/Contact';
 import ProductCompany from 'containers/ProductCompany';
 
 function UserRoutes(props) {
@@ -40,6 +42,20 @@ function UserRoutes(props) {
                 exact
                 element={userLayout({
                     Component: SignUp,
+                })}
+            />
+            <Route
+                path={ROUTE_RESET_PASSWORD}
+                exact
+                element={userLayout({
+                    Component: ResetPassword
+                })}
+            />
+            <Route
+                path={ROUTE_CONTACT}
+                exact
+                element={userLayout({
+                    Component: Contact
                 })}
             />
             <Route

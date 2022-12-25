@@ -2,12 +2,11 @@ import AppBar from "@mui/material/AppBar";
 import Container from "@mui/material/Container";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, Divider, Grid, IconButton, Menu, MenuItem, TextField, Typography } from "@mui/material";
+import { Button, Divider, Grid, TextField, Typography } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PriceDiscount from "LogicResolve/PriceDiscount";
 import {getDistrict, getProvince, getWard} from '../../apis/apiAddress'
 import Select from 'react-select'
-import Spinner from "components/Spinner";
 import PaymentIcon from '@mui/icons-material/Payment';
 import MetamaskIcon from '../../public/MetaMask_Fox.png'
 import ConvertToImageURL from "LogicResolve/ConvertToImageURL";
@@ -20,8 +19,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import {ethers} from 'ethers'
 import { getWarehouseAdress, getContract } from "helpers";
 import { useLibrary } from "hooks/contract";
-import { addOrderToWarehouse, getAllOrder, getOrderPerCompany } from "apis/contractAPI/Warehouse";
-import { confirmPaymentToSeller, confirmPurchase, getAllTransactionOrder } from "apis/contractAPI/OrderAPI";
+import { addOrderToWarehouse} from "apis/contractAPI/Warehouse";
+import { confirmPurchase} from "apis/contractAPI/OrderAPI";
 import moment from "moment";
 import CompanyInfomation from "components/CompanyInfomation";
 import { useWeb3React } from "@web3-react/core";
@@ -36,6 +35,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import RegardPrice from "LogicResolve/RegardPrice";
+import { CheckExpiredToken } from "utils/authUtil";
 
 const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEvent, setDataOrders}) => {
 	const navigate = useNavigate()
@@ -189,6 +189,7 @@ const Order = ({order, getcontract, setTitleLoading, setLoadingEvent, loadingEve
 			productId : _id, 
 			newCount: newCount
 		}
+		await CheckExpiredToken()
 		await CartAPI.updateCountItemCart(accountUser?._id, data).then((res)=> {
 			if(res.status === 200) {
 				setData((prev)=> {

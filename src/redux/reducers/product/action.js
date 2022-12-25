@@ -31,7 +31,8 @@ const getAllProductByQueries = (queriesData, callback = ()=>{}) => {
 }
 
 const getAllProductPerCompany = (id, queriesData, callback = ()=>{}) => {
-    return (dispatch) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
         dispatch({type: types.GET_PRODUCT_PER_COMPANY})
         API.getAllProductPerCompany(id,queriesData)
         .then((result=>{
@@ -70,12 +71,22 @@ const getProductById = (id, callback = ()=>{}) => {
                 })
                 callback({...result.data.product})
             }else{
+                useNotification.Error({
+                    title: "Lỗi!",
+                    message:`Không tìm thấy sản phẩm!`,
+                    duration: 3000
+                  })
                 dispatch({
                     type: types.GET_PRODUCT_DETAIL_FAIL
                 })
             }
         })
         .catch((error)=>{
+            useNotification.Error({
+                title: "Lỗi!",
+                message:`Không tìm thấy sản phẩm!`,
+                duration: 3000
+              })
             dispatch({
                 type: types.GET_PRODUCT_DETAIL_FAIL
             })

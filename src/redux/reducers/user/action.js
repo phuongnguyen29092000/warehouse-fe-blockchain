@@ -1,5 +1,4 @@
 import * as types from "./types";
-// import API from '../../../api/UserAPI'
 import AuthAPI from "apis/AuthAPI";
 import UserAPI from "apis/UserAPI";
 import {

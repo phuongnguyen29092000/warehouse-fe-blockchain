@@ -4,7 +4,8 @@ import { CheckExpiredToken } from 'utils/authUtil'
 import useNotification from 'hooks/notification'
 
 const getCartByUser = (id, callback = ()=>{}) => {
-    return (dispatch) => {
+    return async(dispatch) => {
+        await CheckExpiredToken()
         dispatch({type: types.GET_CART})
         API.getCartByUser(id)
         .then((result=>{

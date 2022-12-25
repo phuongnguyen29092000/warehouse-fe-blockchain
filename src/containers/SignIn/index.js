@@ -119,6 +119,12 @@ export default function SignIn() {
           duration: 5000
         })
       }
+    }).catch(()=> {
+      useNotification.Error({
+        title: "Thất bại",
+        message:"Vui lòng thử lại!",
+        duration: 5000
+      })
     })
   }
 

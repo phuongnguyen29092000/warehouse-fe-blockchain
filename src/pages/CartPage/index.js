@@ -33,7 +33,6 @@ const CartPage = () => {
     const [loadingEvent, setLoadingEvent] = useState(false)
   
     useEffect(()=> {
-        console.log(!Object.keys(accountUser)?.length);
 		if(!Object.keys(accountUser)?.length) {
 			useNotification.Error({
 			  title: "Chú ý!",
@@ -43,12 +42,9 @@ const CartPage = () => {
 			navigate('/dang-nhap')
 			return 
 		}
-	}, [])
-
-    useEffect(()=> {
         document.title = 'Giỏ hàng'  
         dispatch(setActiveUrl('cart-url'))
-    },[])
+	}, [])
 
     useEffect(()=> {
         dispatch(getCartByUser(accountUser?._id, (res)=> {

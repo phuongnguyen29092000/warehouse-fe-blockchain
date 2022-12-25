@@ -1,4 +1,22 @@
-.tour-detail-wrapper{
+.product-detail-wrapper{
     background-size: cover;
     margin-bottom: 100px;
+    height: 100%;
+}
+
+.empty-product {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 100px;
+    min-height: 800px;
+    h2 {
+        color: #292929;
+    }
+    img {
+        width: 200px;
+        height: 200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }

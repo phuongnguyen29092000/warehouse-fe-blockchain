@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllCategory } from "redux/reducers/category/action";
 import Spinner from "components/Spinner";
-import CategoryAPI from "apis/CategoryAPI";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";

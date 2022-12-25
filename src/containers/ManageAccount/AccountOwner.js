@@ -137,15 +137,15 @@ const AccountOwner = () => {
         setImagePreview(file);
     };
 
-    const callApi = async () => {
-        return await axios.get(`https://api-goerli.etherscan.io/api?module=account&action=balance&address=${accountUser?.walletAddress}&tag=latest&apikey=1PQQQ3PTKPWJAB64XGHTW1T3UHKQIF458N`).then((res)=> {
-            console.log({res});
-        })
-      };
+    // const callApi = async () => {
+    //     return await axios.get(`https://api-goerli.etherscan.io/api?module=account&action=balance&address=${accountUser?.walletAddress}&tag=latest&apikey=1PQQQ3PTKPWJAB64XGHTW1T3UHKQIF458N`).then((res)=> {
+    //         console.log({res});
+    //     })
+    //   };
 
-      useEffect(()=> {
-        callApi()
-      }, [])
+    // useEffect(()=> {
+    // callApi()
+    // }, [])
 
       useEffect(()=> {
 		if(!Object.keys(accountUser)?.length) return

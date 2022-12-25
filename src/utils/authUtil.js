@@ -3,9 +3,6 @@ import AuthAPI from "../apis/AuthAPI";
 import useNotification from "../hooks/notification";
 import Cookies from "js-cookie";
 import { ROUTE_HOME } from "../route/type";
-import moment from "moment";
-// import { useDispatch } from "react-redux";
-// import { setAccountInfo } from "redux/reducers/user/action";
 
 export const CheckExpiredToken = async() => {
   const now = Date.now()
@@ -41,8 +38,6 @@ export const CheckExpiredToken = async() => {
 }
 
 export const Logout = () => {
-
-//   AuthAPI.logout()
   removeUser()
   removeAccessToken()
   removeRefreshToken()

@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteItemCart, getCartByUser } from "redux/reducers/cart/action";
 import { debounce, isEmpty } from "lodash";
 import CartAPI from 'apis/CartAPI'
+import { CheckExpiredToken } from "utils/authUtil";
 
 
 const CartDrawer = ({ onClose }) => {
@@ -50,6 +51,7 @@ const CartDrawer = ({ onClose }) => {
 			productId : _id, 
 			newCount: newCount
 		}
+    await CheckExpiredToken()
 		await CartAPI.updateCountItemCart(accountUser?._id, data).then((res)=> {
 			if(res.status === 200) {
 				setData((prev)=> {

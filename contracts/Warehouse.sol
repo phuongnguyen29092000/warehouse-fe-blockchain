@@ -28,7 +28,7 @@ contract Warehouse {
     {
         require(totalProduct > 0, "totalProduct must be greater than zero");
         require(shippingPrice > 0, "shippingPrice must be greater than zero");
-        require(deadline > 0, "totalProduct must be greater than zero");
+        require(deadline > 0, "deadline must be greater than zero");
         Order order = new Order(msg.sender, seller, shippingPrice, totalProduct, deadline);
         listOrder.push(address(order));
         emit createOrder(

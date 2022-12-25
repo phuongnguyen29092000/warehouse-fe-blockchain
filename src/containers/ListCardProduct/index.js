@@ -9,31 +9,8 @@ import EmptyProductIcon from '../../public/empty-product.jpg'
 
 const ProductResult = ({queriesData, setQueriesData, dataResult, loading, totalCount, setOpenDrawerCart}) => {
     const dispatch = useDispatch()
-    // const { search } = useLocation();
-    // let searchParagram = new URLSearchParams(search);
-    // useEffect(() => {
-    //     let param = {}
-    //     for (const [key, value] of searchParagram.entries()) {
-    //         param[key] = value
-    //     }
-
-    //     if(Object.keys(param).length > 1){
-    //         dispatch(filterTour(param,(data) => setDataResult(data)))
-    //     }else{
-    //         ListTourAPI.searchTour(param)
-    //             .then((rs) => {
-    //                 if (rs.status === 200) {
-    //                     setDataResult(rs.data.data)
-    //                 } else {
-    //                     setDataResult([])
-    //                 }
-    //             }).catch((error) => {
-    //                 setDataResult([])
-    //             })
-    //     }
-    // }, [search])
     useEffect(() => {
-        // document.title = 'Kết quả'
+        document.title = 'Warehouse Protection'
         dispatch(setActiveUrl(''))
     }, [])
 

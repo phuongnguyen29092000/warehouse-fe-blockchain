@@ -25,16 +25,15 @@ import ETHIcon from "../../assets/icons/ethereum-eth.svg";
 import useNotification from 'hooks/notification';
 import WarningIcon from '@mui/icons-material/Warning';
 import Timeline from './Timeline';
+import { CheckExpiredToken } from 'utils/authUtil';
 
 const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, setTitle, activeOrder, setActiveOrder}) => {
     const library = useLibrary()
 	const { active, activate, error } = useWeb3React();
     const [isExpand, setIsExpand] = useState(false)
     const [fetchTransaction, setFetchTransaction] = useState(false)
-    const data = [1, 2, 3, 4]
     const [detailOrder, setDetailOrder] = useState({})
     const [loading, setLoading] = useState(false)
-    const [actorsOrder, setActorOrder] = useState({buyer: {}, seller: {}})
     const [statusKey, setStatusKey] = useState(Number(order?.state))
     const [transactions, setTransactions] = useState([])
 
@@ -46,6 +45,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
         const getDetailFromDB = async() => {
             setLoading(true)
             const contractOrder = await getContractOrder() 
+            await CheckExpiredToken()
             await OrderAPI.getOrderByAddress(order?.orderAddress, {buyer: order?.buyer, seller: order?.seller}).then(async(res)=> {
                 setDetailOrder(res?.data?.order)
                 await getAllTransactionOrder(contractOrder).then((res)=> {
@@ -78,16 +78,16 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
 
     console.log({detailOrder});
 
-    const returnProductToSeller = async() => {
-        const data = {
-            orderAddress: order.orderAddress,
-        };
-        await ProductAPI.returnProductToSeller(data).then((res)=> {
-            console.log(res);
-        }).catch((e)=> {
-            console.log(e);
-        })
-    }
+    // const returnProductToSeller = async() => {
+    //     const data = {
+    //         orderAddress: order.orderAddress,
+    //     };
+    //     await ProductAPI.returnProductToSeller(data).then((res)=> {
+    //         console.log(res);
+    //     }).catch((e)=> {
+    //         console.log(e);
+    //     })
+    // }
 
     const handleConfirmOrder = async() => {
         if(!isExpand) {
@@ -133,6 +133,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                 orderAddress: order.orderAddress,
                 buyerId: detailOrder?.details[0]?.buyer?._id
             };
+            await CheckExpiredToken()
             await ProductAPI.createProductsWhenPayment(data).then((res)=> {
                 console.log(res);
                 useNotification.Success({
@@ -171,6 +172,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             const data = {
                 orderAddress: order.orderAddress,
             };
+            await CheckExpiredToken()
             await ProductAPI.returnProductToSeller(data).then((res)=> {
                 console.log(res);
                 useNotification.Success({
@@ -237,6 +239,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             const data = {
                 orderAddress: order.orderAddress,
             };
+            await CheckExpiredToken()
             await ProductAPI.returnProductToSeller(data).then((res)=> {
                 console.log(res);
                 useNotification.Success({
@@ -275,6 +278,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             const data = {
                 orderAddress: order.orderAddress,
             };
+            await CheckExpiredToken()
             await ProductAPI.returnProductToSeller(data).then((res)=> {
                 console.log(res);
                 useNotification.Success({
@@ -314,6 +318,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                 orderAddress: order.orderAddress,
                 buyerId: detailOrder?.details[0]?.buyer?._id
             };
+            await CheckExpiredToken()
             await ProductAPI.createProductsWhenPayment(data).then((res)=> {
                 console.log(res);
                 useNotification.Success({
@@ -351,6 +356,7 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
             const data = {
                 orderAddress: order.orderAddress,
             };
+            await CheckExpiredToken()
             await ProductAPI.returnProductToSeller(data).then((res)=> {
                 console.log(res);
                 useNotification.Success({
