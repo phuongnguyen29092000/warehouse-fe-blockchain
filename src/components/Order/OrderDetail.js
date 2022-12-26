@@ -663,10 +663,17 @@ const OrderDetail  = ({order, orderType, loadingEvent, setLoadingEvent, title, s
                             <Grid item xs={6} style={{marginTop: '-30px'}}>
                                 <div className='info-user'>
                                     <h3 style={{marginLeft: 10, marginBottom: 5}} className='text-monospace'>CHI TIẾT</h3>
-                                    <div className='info-address'>
-                                        <label>Công ty xuất kho: </label>
-                                        <span>{detailOrder?.details?.[0].seller?.companyName}</span>
+                                    {
+                                        isBuyer ? 
+                                        <div className='info-address'>
+                                            <label>Công ty xuất kho: </label>
+                                            <span>{detailOrder?.details?.[0].seller?.companyName}</span>
+                                        </div> : 
+                                        <div className='info-address'>
+                                        <label>Công ty nhập kho: </label>
+                                        <span>{detailOrder?.details?.[0].buyer?.companyName}</span>
                                     </div>
+                                    }
                                     <div className='info-address'>
                                         <label>Địa chỉ giao hàng: </label>
                                         <span>{detailOrder?.address}</span>

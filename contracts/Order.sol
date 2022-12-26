@@ -323,7 +323,7 @@ contract Order {
         transactionOrders.push(transactionReturnShippingPrice);
 
         // return total price to buyer
-        owner.transfer(address(this).balance - shippingPrice);
+        owner.transfer(address(this).balance);
         TransactionOrder memory transactionReturnTotalPrice = TransactionOrder(
             owner,
             totalPrice - shippingPrice,
@@ -368,7 +368,7 @@ contract Order {
         transactionOrders.push(transactionReturnShippingPrice);
 
         // return total price to buyer
-        owner.transfer(address(this).balance - shippingPrice);
+        owner.transfer(address(this).balance);
         TransactionOrder memory transactionReturnTotalPrice = TransactionOrder(
             owner,
             totalPrice - shippingPrice,

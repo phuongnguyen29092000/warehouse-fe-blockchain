@@ -70,6 +70,7 @@ const OrderHistory = () => {
         }
         getAllOrder().then(()=> setLoading(false))
     }, [])
+    console.log({data});
 
     useEffect(()=> {
         const filterOrder = async() => {

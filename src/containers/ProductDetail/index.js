@@ -150,17 +150,15 @@ function ProductDetail() {
         document.title = 'Warehouse Protection | Chi tiết'
     }, [])
 
-    const handleIncrement = (onChange) => {
-        let countNext = count + 1;
-        onChange(countNext);
-        setCount(countNext);
-    }
-    const handleDecrement = (onChange) => {
-        let countNext = count - 1;
-        onChange(countNext);
-        setCount(countNext);
-    }
     const hanldeAddToCart = (detail) => {
+        if(count < detail?.minimumQuantity) {
+            useNotification.Error({
+                title: "Chú ý!",
+                message:`Số lượng sản phẩm phải lớn hơn đơn hàng nhỏ nhất!`,
+                duration: 3000
+              })
+            return  
+        }
         if(!Object.keys(accountUser)?.length) {
             useNotification.Error({
               title: "Chú ý!",
@@ -308,6 +306,9 @@ function ProductDetail() {
                                         <span style={{ color: 'darkblue', fontWeight: 'bold' }}>Số lượng còn: </span>{data?.amount}
                                     </Typography>
                                     <Typography gutterBottom variant="body1" component="div" align='left'>
+                                        <span style={{ color: 'darkblue', fontWeight: 'bold' }}>Đơn hàng nhỏ nhất: </span>{data?.minimumQuantity}
+                                    </Typography>
+                                    <Typography gutterBottom variant="body1" component="div" align='left'>
                                         <span style={{ color: 'darkblue', fontWeight: 'bold' }}>Trạng thái: </span>{data?.isSelling ? ' Đang bán' : 'Ngừng bán'}
                                     </Typography>
                                     <Typography gutterBottom variant="body1" component="div" align='left'>
@@ -318,7 +319,7 @@ function ProductDetail() {
                                             >-</Button>
                                             <input type='text' value={count} pattern="[0-9]" style={{background: '#E4EFF5', border: '0.5px solid rgb(210 205 205)', width: 70, textAlign: 'center', outline: 'none'
                                             }} onChange={(evt)=> {
-                                                if(!Number(evt.target.value) && Number(evt.target.value) !==0) return 
+                                                // if(!Number(evt.target.value) && Number(evt.target.value) !==0) return 
                                                 setCount(Number(evt.target.value))
                                             }}>
                                             </input>    
