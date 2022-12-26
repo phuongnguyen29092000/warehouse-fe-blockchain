@@ -117,7 +117,7 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
                             message: '* Tên quá ngắn.'
                         }
                     })}
-                        disabled={product && product.manufacturer._id !== accountUser._id}
+                        // disabled={product && product.manufacturer._id !== accountUser._id}
                         defaultValue={product && product.productName}
                     />
                     {errors.productName && <div className="alert">{errors.productName.message}</div>}
@@ -310,7 +310,7 @@ function ProductForm({ handleAddProduct, handleUpdateProduct, product, submit = 
                         }
                     })}
                         defaultValue={product && product.description}
-                        disabled={product && product.manufacturer._id !== accountUser._id}
+                        // disabled={product && product.manufacturer._id !== accountUser._id}
                     />
                     {errors.description && <div className="alert">{errors.description.message}</div>}
                 </div>
